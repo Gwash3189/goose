@@ -1,0 +1,28 @@
+{
+  "type": "module",
+  "devDependencies": {
+    "@faker-js/faker": "^8.4.1",
+    "@types/better-sqlite3": "^7.6.9",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.20",
+    "drizzle-kit": "^0.20.14",
+    "tsx": "^4.7.1",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "better-sqlite3": "^9.4.3",
+    "drizzle-orm": "^0.29.4",
+    "express": "^4.18.2"
+  },
+  "name": "goose",
+  "version": "1.0.0",
+  "main": "out/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsx watch src/index.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
