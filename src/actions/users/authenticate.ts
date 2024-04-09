@@ -18,11 +18,11 @@ export async function authenticate (ctx: Ctx): Promise<void> {
     [AuthenticateSchemas.password, password]
   ])
 
-  const user = await T.success<User>(result, async () => {
+  const user = await T.success<typeof result, User>(result, async () => {
     return await Users.by(ctx.state.database, { email }, true) as User
   })
 
-  const match = await T.success(user, async () => {
+  const match = await T.success<typeof user, boolean>(user, async (user) => {
     return await bcrypt.compare(password, user.password)
   })
 

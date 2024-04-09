@@ -50,34 +50,26 @@ export function all (arr: ZodTupleArray): true | z.SafeParseError<{ [x: string]:
   return true
 }
 
-type FailureInput = any | z.SafeParseError<{ [x: string]: any }>
-type FailureInputArray = FailureInput[]
+type Input = any | z.SafeParseError<{ [x: string]: any }>
+type InputArray = Input[]
 
-export async function success <X = void> (result: any | z.SafeParseError<{ [x: string]: any }>, cb: () => Promise<X>): Promise<X> {
-  if (!Result.cast(result)) { return undefined as any }
-  return await cb()
+export async function success <In = Input | InputArray, X = void> (result: In, cb: (result: In) => Promise<X>): Promise<X | undefined> {
+  if (Array.isArray(result) && !result.every(Boolean)) {
+    return undefined
+  }
+
+  if (result === false || (result as any)?.success === false) {
+    return undefined
+  }
+
+  return await cb(result)
 }
 
-export async function failure (result: any | z.SafeParseError<{ [x: string]: any }> | FailureInputArray, cb: () => Promise<void>): Promise<void> {
-  if (Array.isArray(result)) {
-    if (!Result.chain(...result)) {
-      await cb()
-    }
+export async function failure <X = void> (result: Input | InputArray, cb: () => Promise<X>): Promise<X | undefined> {
+  if (result === false || result?.success === false ||
+    (Array.isArray(result) && result.some(x => x === false))) {
+    return await cb()
   }
-  if (!Result.cast(result)) {
-    await cb()
-  }
-}
 
-export const Result = {
-  chain (...results: any[]): boolean {
-    return results.every((result) => Result.cast(result))
-  },
-  cast (value: any | z.SafeParseError<{ [x: string]: any }>): boolean {
-    if (value?.success !== undefined) {
-      return value.success
-    }
-
-    return Boolean(value)
-  }
+  return undefined
 }
