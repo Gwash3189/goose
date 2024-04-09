@@ -1,26 +1,36 @@
-import express from 'express'
-import { db } from './db'
-import { identities } from './schema'
-import { count, sql } from 'drizzle-orm'
+import Koa from 'koa'
+import { koaBody as KoaBody } from 'koa-body'
+import logger from 'koa-pino-logger'
+import { env } from './process'
 
-const app = express()
-const port = 3000
+import * as OwnersMiddleware from './actions/owners/middleware'
+import * as DatabaseMiddleware from './database/middleware'
+import * as Routes from './routes'
+import * as Response from './response'
 
-app.get('/health', async (_request, response) => {
-  const canIHitTheDatabase = await db.select({
-    count: count(identities.id)
-  }).from(identities).get()
+const app = new Koa()
 
+app
+  .use(KoaBody())
+  .use(logger())
+  .use(Response.bail)
+  .use(DatabaseMiddleware.connect)
+  .use(OwnersMiddleware.authenticate)
 
-  console.log(canIHitTheDatabase)
+const router = Routes.register()
 
+app.use(router.routes())
+  .use(router.allowedMethods())
 
-  response.json({
-    healthy: !!canIHitTheDatabase
-  })
-})
+const paths = router
+  .stack
+  .filter((s) => s.methods.length !== 0)
+  .map(s => s.methods
+    .map(x => [x, s.path])
+  ).flat()
 
+console.log(new Date(), 'Router booting with the following routes and methods:\n', paths)
 
-app.listen(port, () => {
-  console.log('Server running on ', port)
+app.listen(env.PORT, () => {
+  console.log(new Date(), `Server running on http://localhost:${env.PORT}`)
 })
