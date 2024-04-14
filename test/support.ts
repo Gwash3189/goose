@@ -16,7 +16,7 @@ export function getClient (): PrismaClient<Prisma.PrismaClientOptions, never, De
 
 export async function createTestDatabase (): Promise<void> {
   const id = parseInt(env.VITEST_WORKER_ID?.toString() as string, 10)
-  env.DATABASE_URL = `file:${id}?mode=memory&cache=shared`
+  env.DATABASE_URL = `file:${id}.db?mode=memory&cache=shared`
   clients.set(id, new PrismaClient())
   await $`prisma db push --skip-generate --force-reset --accept-data-loss`
 }
@@ -27,7 +27,7 @@ export async function tearDownDatabase (client: PrismaClient<Prisma.PrismaClient
   const id = parseInt(env.VITEST_WORKER_ID?.toString() as string, 10)
   await client.$disconnect()
   clients.delete(id)
-  await $`rm -rf ./prisma/${id}`
+  await $`rm -rf ./prisma/${id}.db ./prisma/${id}.db-journal`
 }
 
 export class CtxBuilder {

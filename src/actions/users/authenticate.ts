@@ -35,8 +35,16 @@ export async function authenticate (ctx: Ctx): Promise<void> {
   })
 
   await T.failure([result, user, match], async () => {
-    throw new UnprocessableEntity((result as SafeParseError<{
-      [x: string]: any
-    }>).error.errors.join(', ').trim())
+    if (result !== true && !(result?.success)) {
+      throw new UnprocessableEntity('Whoops')
+    }
+
+    if (user === undefined || match === false) {
+      ctx.body = {
+        data: {
+          match: false
+        }
+      }
+    }
   })
 }

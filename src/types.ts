@@ -53,12 +53,12 @@ export function all (arr: ZodTupleArray): true | z.SafeParseError<{ [x: string]:
 type Input = any | z.SafeParseError<{ [x: string]: any }>
 type InputArray = Input[]
 
-export async function success <In = Input | InputArray, X = void> (result: In, cb: (result: In) => Promise<X>): Promise<X | undefined> {
+export async function success <In, X = void> (result: any, cb: (result: NonNullable<In>) => Promise<X>): Promise<X | undefined> {
   if (Array.isArray(result) && !result.every(Boolean)) {
     return undefined
   }
 
-  if (result === false || (result as any)?.success === false) {
+  if (!(result as boolean) || (result)?.success === false) {
     return undefined
   }
 
@@ -66,7 +66,7 @@ export async function success <In = Input | InputArray, X = void> (result: In, c
 }
 
 export async function failure <X = void> (result: Input | InputArray, cb: () => Promise<X>): Promise<X | undefined> {
-  if (result === false || result?.success === false ||
+  if (!(result as boolean) || result?.success === false ||
     (Array.isArray(result) && result.some(x => x === false))) {
     return await cb()
   }
