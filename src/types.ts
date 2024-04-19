@@ -2,7 +2,7 @@ import { type RouterContext } from 'koa-router'
 import { type Database } from './database'
 import { type Owner } from '@prisma/client'
 import { z } from 'zod'
-import { UnprocessableEntity } from './response'
+import { BadRequest } from './response'
 
 export class ErrorDto extends Error {
   constructor (public readonly result: z.SafeParseReturnType<{ [x: string]: any }, { [x: string]: any }>) {
@@ -27,7 +27,7 @@ export function ensure<X> (x: any, schema: z.ZodType): X {
     return result.data as X
   }
 
-  throw new UnprocessableEntity(result.error.errors[0].message)
+  throw new BadRequest(result.error.errors[0].message)
 }
 
 function parse<X> (x: X, schema: z.ZodType): z.SafeParseReturnType<{ [x: string]: any }, { [x: string]: any }> {
@@ -53,13 +53,13 @@ export function all (arr: ZodTupleArray): true | z.SafeParseError<{ [x: string]:
 type Input = any | z.SafeParseError<{ [x: string]: any }>
 type InputArray = Input[]
 
-export async function success <In, X = void> (result: any, cb: (result: NonNullable<In>) => Promise<X>): Promise<X | undefined> {
+export async function success <In, X = void> (result: any, cb: (result: NonNullable<In>) => Promise<X>): Promise<X> {
   if (Array.isArray(result) && !result.every(Boolean)) {
-    return undefined
+    return undefined as any
   }
 
   if (!(result as boolean) || (result)?.success === false) {
-    return undefined
+    return undefined as any
   }
 
   return await cb(result)

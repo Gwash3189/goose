@@ -4,7 +4,7 @@ import { Owner, Prisma, PrismaClient } from '@prisma/client'
 import { DefaultArgs } from '@prisma/client/runtime/library'
 import { CtxBuilder, databaseTimeout, getClient } from '../../support'
 import * as OwnerFactory from '../../../src/database/factories/owner'
-import { UnprocessableEntity } from '../../../src/response'
+import { BadRequest } from '../../../src/response'
 
 describe('Accounts.create', () => {
   let prisma: PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>
@@ -43,7 +43,7 @@ describe('Accounts.create', () => {
           .database(prisma)
           .body({ name: undefined })
           .build()
-      )).rejects.toThrow(UnprocessableEntity)
+      )).rejects.toThrow(BadRequest)
     })
   })
 })

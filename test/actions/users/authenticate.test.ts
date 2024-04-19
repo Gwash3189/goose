@@ -1,9 +1,10 @@
 import { describe, it, beforeEach, expect } from 'vitest'
 import { PrismaClient, User } from '@prisma/client'
-import { CtxBuilder, castAsResponseBody, getClient } from '../../support'
+import { CtxBuilder, getClient, type ResponseBody } from '../../support'
 import * as UserFactory from '../../../src/database/factories/user'
-import { Ctx } from '../../../src/types'
-import { authenticate } from '../../../src/actions/users/authenticate'
+import * as T from '../../../src/types'
+import { type Ctx } from '../../../src/types'
+import { X_GOOSE_USER_JWT_KEY_HEADER, authenticate } from '../../../src/actions/users/authenticate'
 
 describe('users/authenticate', () => {
   describe('when given a valid password', () => {
@@ -26,7 +27,11 @@ describe('users/authenticate', () => {
     })
 
     it('returns true', () => {
-      expect(castAsResponseBody(ctx).data.match).to.eq(true)
+      expect(T.cast<ResponseBody>(ctx).body.data.match).to.eq(true)
+    })
+
+    it(`sets ${X_GOOSE_USER_JWT_KEY_HEADER}`, () => {
+      expect(ctx.headers[X_GOOSE_USER_JWT_KEY_HEADER]).to.be.a('string')
     })
   })
 
@@ -50,7 +55,7 @@ describe('users/authenticate', () => {
     })
 
     it('returns false', () => {
-      expect(castAsResponseBody(ctx).data.match).to.eq(false)
+      expect(T.cast<ResponseBody>(ctx).body.data.match).to.eq(false)
     })
   })
 })

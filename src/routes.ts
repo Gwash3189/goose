@@ -37,9 +37,9 @@ export function register (): Router<any, {}> {
 
     nest(router, '/:accountId', (router) => {
       router.post('/', Accounts.create)
-      router.get('/', Accounts.show)
-      router.put('/', Accounts.update)
-      router.delete('/', Accounts.del)
+        .get('/', Accounts.show)
+        .put('/', Accounts.update)
+        .delete('/', Accounts.del)
 
       nest(router, '/user', (router) => {
         router.post('/authenticate', Users.authenticate)
@@ -49,10 +49,12 @@ export function register (): Router<any, {}> {
         router.get('/', Users.list)
 
         nest(router, '/:userId', (router) => {
-          router.get('/', Users.show)
-          router.post('/', Users.create)
-          router.delete('/', Users.del)
-          router.put('/', Users.update)
+          router
+            .use(Users.security)
+            .get('/', Users.show)
+            .post('/', Users.create)
+            .delete('/', Users.del)
+            .put('/', Users.update)
         })
       })
     })

@@ -3,9 +3,11 @@ import * as Users from '../../models/users'
 import * as T from '../../types'
 import bcrypt from 'bcryptjs'
 import { type AuthenticateBody, authenticate as AuthenticateSchemas } from './schemas'
-import { UnprocessableEntity } from '../../response'
 import { User } from '@prisma/client'
-import { SafeParseError } from 'zod'
+import jwt from 'jsonwebtoken'
+import { env } from '../../process'
+
+export const X_GOOSE_USER_JWT_KEY_HEADER = 'x-goose-user-jwt-key'
 
 export async function authenticate (ctx: Ctx): Promise<void> {
   const { email, password } = T.ensure<AuthenticateBody>(
@@ -13,20 +15,29 @@ export async function authenticate (ctx: Ctx): Promise<void> {
     AuthenticateSchemas.body
   )
 
-  const result = T.all([
-    [AuthenticateSchemas.email, email],
-    [AuthenticateSchemas.password, password]
-  ])
-
-  const user = await T.success<typeof result, User>(result, async () => {
-    return await Users.by(ctx.state.database, { email }, true) as User
+  const user = await T.success([email, password], async () => {
+    try {
+      return await Users.byEmail(ctx.state.database, { email })
+    } catch (error) {
+      return null
+    }
   })
 
   const match = await T.success<typeof user, boolean>(user, async (user) => {
-    return await bcrypt.compare(password, user.password)
+    try {
+      return await bcrypt.compare(password, user.password)
+    } catch (error) {
+      return false
+    }
   })
 
-  await T.success(match, async () => {
+  await T.success<[boolean, User]>([match, user], async ([_match, user]) => {
+    const token = jwt.sign(
+      { id: user.id, accountId: user.accountId },
+      env.JWT_SECRET,
+      { expiresIn: '1h' }
+    )
+    ctx.set(X_GOOSE_USER_JWT_KEY_HEADER, token)
     ctx.body = {
       data: {
         match
@@ -34,12 +45,8 @@ export async function authenticate (ctx: Ctx): Promise<void> {
     }
   })
 
-  await T.failure([result, user, match], async () => {
-    if (result !== true && !(result?.success)) {
-      throw new UnprocessableEntity('Whoops')
-    }
-
-    if (user === undefined || match === false) {
+  await T.failure([user, match], async () => {
+    if (user === null || !match) {
       ctx.body = {
         data: {
           match: false

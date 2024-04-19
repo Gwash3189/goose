@@ -33,6 +33,16 @@ export async function tearDownDatabase (client: PrismaClient<Prisma.PrismaClient
 export class CtxBuilder {
   private readonly ctx: Partial<Ctx> = {}
 
+  url (url: string): CtxBuilder {
+    this.ctx.url = url
+    return this
+  }
+
+  headers (headers: Record<string, any>): CtxBuilder {
+    this.ctx.headers = { ...this.ctx.headers, ...headers }
+    return this
+  }
+
   query (params: Record<string, any>): CtxBuilder {
     (this.ctx.query as any as unknown) = { ...this.ctx.query, ...params }
     return this
@@ -67,12 +77,15 @@ export class CtxBuilder {
 
   build <Body = {}, Query = {}, Params ={}>(): Ctx {
     this.query({})
+    this.ctx.headers = { ...this.ctx.headers ?? {} };
+    (this.ctx as unknown as any).set = (header: string, value: any) => {
+      this.ctx.headers = { ...this.ctx.headers, [header]: value }
+    }
+    (this.ctx as unknown as any).get = (header: string) => {
+      return (this.ctx.headers as Record<string, string>)[header]
+    }
     return this.ctx as (Ctx & { request: { body: Body }, query: Query, params: Params })
   }
 }
 
-export function castAsResponseBody (ctx: Ctx): ResponseBody {
-  return ctx.body as ResponseBody
-}
-
-export interface ResponseBody<Data = Record<string, any>> { data: Data }
+export interface ResponseBody<Data = Record<string, any>> { body: { data: Data } }

@@ -43,17 +43,12 @@ export async function create (database: Database, { id, accountId, name, email, 
   })
 }
 
-export async function by (database: Database, props: any, withPassword = false): Promise<CastedUser | User> {
-  const args: { where: any, select?: any } = {
-    where: props
-  }
-
-  if (!withPassword) {
-    args.select = permitted()
-    return await database.user.findUniqueOrThrow(args)
-  }
-
-  return await database.user.findUniqueOrThrow(args) as CastedUser
+export async function byEmail (database: Database, { email }: { email: string }): Promise<User> {
+  return await database.user.findUniqueOrThrow({
+    where: {
+      email
+    }
+  })
 }
 
 export async function find (database: Database, { id, accountId }: { id: string, accountId: string }): Promise<CastedUser> {
