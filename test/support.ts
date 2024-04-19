@@ -70,3 +70,9 @@ export class CtxBuilder {
     return this.ctx as (Ctx & { request: { body: Body }, query: Query, params: Params })
   }
 }
+
+export function castAsResponseBody (ctx: Ctx): ResponseBody {
+  return ctx.body as ResponseBody
+}
+
+export interface ResponseBody<Data = Record<string, any>> { data: Data }

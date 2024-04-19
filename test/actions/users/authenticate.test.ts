@@ -1,6 +1,6 @@
 import { describe, it, beforeEach, expect } from 'vitest'
 import { PrismaClient, User } from '@prisma/client'
-import { CtxBuilder, getClient } from '../../support'
+import { CtxBuilder, castAsResponseBody, getClient } from '../../support'
 import * as UserFactory from '../../../src/database/factories/user'
 import { Ctx } from '../../../src/types'
 import { authenticate } from '../../../src/actions/users/authenticate'
@@ -26,7 +26,7 @@ describe('users/authenticate', () => {
     })
 
     it('returns true', () => {
-      expect(ctx.body.data.match).to.eq(true)
+      expect(castAsResponseBody(ctx).data.match).to.eq(true)
     })
   })
 
@@ -50,7 +50,7 @@ describe('users/authenticate', () => {
     })
 
     it('returns false', () => {
-      expect(ctx.body.data.match).to.eq(false)
+      expect(castAsResponseBody(ctx).data.match).to.eq(false)
     })
   })
 })
