@@ -1,6 +1,6 @@
 import { describe, it, beforeEach, expect } from 'vitest'
 import { PrismaClient, User } from '@prisma/client'
-import { CtxBuilder, getClient, type ResponseBody } from '../../support'
+import { CtxBuilder, getClient, type Response } from '../../support'
 import * as UserFactory from '../../../src/database/factories/user'
 import * as T from '../../../src/types'
 import { type Ctx } from '../../../src/types'
@@ -27,7 +27,7 @@ describe('users/authenticate', () => {
     })
 
     it('returns true', () => {
-      expect(T.cast<ResponseBody>(ctx).body.data.match).to.eq(true)
+      expect(T.cast<Response>(ctx).body.data.authenticated).to.eq(true)
     })
 
     it(`sets ${X_GOOSE_USER_JWT_KEY_HEADER}`, () => {
@@ -55,7 +55,7 @@ describe('users/authenticate', () => {
     })
 
     it('returns false', () => {
-      expect(T.cast<ResponseBody>(ctx).body.data.match).to.eq(false)
+      expect(T.cast<Response>(ctx).body.data.authenticated).to.eq(false)
     })
   })
 })

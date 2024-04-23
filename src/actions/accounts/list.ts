@@ -9,16 +9,18 @@ export async function list (ctx: Ctx): Promise<void> {
   if (Array.isArray(page)) throw new UnprocessableEntity()
   if (Array.isArray(pageSize)) throw new UnprocessableEntity()
 
-  try {
-    ctx.body = {
-      data: await Accounts
-        .many(ctx.state.database, {
-          ownerId: id,
-          page,
-          pageSize
-        })
-    }
-  } catch (_error) {
+  const listResult = await Accounts
+    .many(ctx.state.database, {
+      ownerId: id,
+      page,
+      pageSize
+    })
+
+  if (!listResult.success) {
     throw new InternalServerError()
+  }
+
+  ctx.body = {
+    data: listResult.data
   }
 }

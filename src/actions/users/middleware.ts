@@ -2,22 +2,28 @@ import { Ctx } from '../../types'
 import { X_GOOSE_USER_JWT_KEY_HEADER } from './authenticate'
 import * as T from '../../types'
 import { z } from 'zod'
-import jwt from 'jsonwebtoken'
 import { env } from '../../process'
 import { BadRequest } from '../../response'
+import { verify } from '../../security/jwt'
 
 export async function security (ctx: Ctx, next: () => Promise<void>): Promise<void> {
-  const token = T.ensure<string>(ctx.get(X_GOOSE_USER_JWT_KEY_HEADER), z.string())
+  const headerResult = T.ensure<string>(ctx.get(X_GOOSE_USER_JWT_KEY_HEADER), z.string())
 
-  try {
-    const result = jwt.verify(token, env.JWT_SECRET) as { id: string, accountId: string }
+  if (!headerResult.success) {
+    throw new BadRequest('Missing token')
+  }
 
-    if (ctx.url.includes(result.id) && ctx.url.includes(result.accountId)) {
-      return await next()
-    }
+  const result = verify(headerResult.data, env.JWT_SECRET)
 
-    throw new BadRequest()
-  } catch (error) {
+  if (!result.success) {
     throw new BadRequest('Invalid token')
+  }
+
+  const { id, accountId } = result.data
+
+  if (ctx.url.includes(id) && ctx.url.includes(accountId)) {
+    return await next()
+  } else {
+    throw new BadRequest()
   }
 }

@@ -88,4 +88,4 @@ export class CtxBuilder {
   }
 }
 
-export interface ResponseBody<Data = Record<string, any>> { body: { data: Data } }
+export interface Response<Data = Record<string, any>> { body: { data: Data } }

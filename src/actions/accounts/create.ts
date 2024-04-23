@@ -5,20 +5,20 @@ import { type CreateBody, update as CreateSchema } from './schemas'
 import { UnprocessableEntity } from '../../response'
 
 export async function create (ctx: Ctx): Promise<void> {
-  const { name } = T.ensure<CreateBody>(ctx.request.body, CreateSchema.body)
+  const bodyResult = T.ensure<CreateBody>(ctx.request.body, CreateSchema.body)
+
+  if (!bodyResult.success) {
+    throw new UnprocessableEntity(bodyResult.error.errors.join(', ').trim())
+  }
+  const { name } = bodyResult.data
   const { id: ownerId } = ctx.state.owner
+  const createResult = await Accounts.create(ctx.state.database, { name, ownerId })
 
-  const result = T.all([
-    [CreateSchema.name, name]
-  ])
+  if (!createResult.success) {
+    throw new UnprocessableEntity()
+  }
 
-  await T.success(result, async () => {
-    ctx.body = {
-      data: await Accounts.create(ctx.state.database, { ownerId, name })
-    }
-  })
-
-  await T.failure(result, async (result) => {
-    throw new UnprocessableEntity(result.error.errors.join(', ').trim())
-  })
+  ctx.body = {
+    data: createResult.data
+  }
 }

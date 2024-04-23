@@ -1,7 +1,7 @@
 import { ApiKey, PrismaClient, User } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import { faker } from '@faker-js/faker'
-import jwt from 'jsonwebtoken'
+import * as JWT from '../../src/security/jwt'
 import { env } from '../../src/process'
 
 const prisma = new PrismaClient()
@@ -86,7 +86,7 @@ main()
     console.log('API Key:', apiKey.key)
     console.log('User ID:', user.id)
     console.log('Account ID:', user.accountId)
-    console.log('JWT Token:', jwt.sign(
+    console.log('JWT Token:', JWT.sign(
       { id: user.id, accountId: user.accountId },
       env.JWT_SECRET,
       { expiresIn: '8h' }

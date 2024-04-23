@@ -2,11 +2,12 @@ import { describe, it, beforeEach, expect } from 'vitest'
 import { list } from '../../../src/actions/accounts/list'
 import { Account, Owner, Prisma, PrismaClient } from '@prisma/client'
 import { DefaultArgs } from '@prisma/client/runtime/library'
-import { CtxBuilder, databaseTimeout, getClient } from '../../support'
+import { CtxBuilder, databaseTimeout, getClient, Response } from '../../support'
 import * as OwnerFactory from '../../../src/database/factories/owner'
 import * as AccountFactory from '../../../src/database/factories/account'
 import { UnprocessableEntity } from '../../../src/response'
-import { Ctx } from '../../../src/types'
+import { type Ctx } from '../../../src/types'
+import * as T from '../../../src/types'
 
 describe('Accounts.list', () => {
   let prisma: PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>
@@ -33,7 +34,7 @@ describe('Accounts.list', () => {
     })
 
     it('lists all the accounts', async () => {
-      expect(ctx.body.data).to.deep.include(account)
+      expect(T.cast<Response>(ctx).body.data).to.deep.include(account)
     })
   })
 
@@ -52,7 +53,7 @@ describe('Accounts.list', () => {
       })
 
       it('lists the correct number of accounts', async () => {
-        expect(ctx.body.data).to.have.length(1)
+        expect(T.cast<Response>(ctx).body.data).to.have.length(1)
       })
     })
 

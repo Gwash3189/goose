@@ -1,57 +1,58 @@
 import { Ctx } from '../../types'
 import * as Users from '../../models/users'
 import * as T from '../../types'
-import bcrypt from 'bcryptjs'
 import { type AuthenticateBody, authenticate as AuthenticateSchemas } from './schemas'
-import { User } from '@prisma/client'
-import jwt from 'jsonwebtoken'
+import { sign } from '../../security/jwt'
 import { env } from '../../process'
+import { NotFound } from '../../response'
+import { compare } from '../../security/hash'
 
 export const X_GOOSE_USER_JWT_KEY_HEADER = 'x-goose-user-jwt-key'
 
 export async function authenticate (ctx: Ctx): Promise<void> {
-  const { email, password } = T.ensure<AuthenticateBody>(
+  const bodyResult = T.ensure<AuthenticateBody>(
     ctx.request.body,
     AuthenticateSchemas.body
   )
 
-  const user = await T.success([email, password], async () => {
-    try {
-      return await Users.byEmail(ctx.state.database, { email })
-    } catch (error) {
-      return null
-    }
-  })
+  if (!bodyResult.success) {
+    throw new NotFound()
+  }
 
-  const match = await T.success<typeof user, boolean>(user, async (user) => {
-    try {
-      return await bcrypt.compare(password, user.password)
-    } catch (error) {
-      return false
-    }
-  })
+  const { email, password } = bodyResult.data
 
-  await T.success<[boolean, User]>([match, user], async ([_match, user]) => {
-    const token = jwt.sign(
-      { id: user.id, accountId: user.accountId },
-      env.JWT_SECRET,
-      { expiresIn: '1h' }
-    )
-    ctx.set(X_GOOSE_USER_JWT_KEY_HEADER, token)
+  const user = await Users.byEmail(ctx.state.database, { email })
+
+  if (!user.success) {
+    throw new NotFound()
+  }
+
+  const match = await compare(password, user.data.password)
+
+  if (!match.success) {
+    ctx.status = 401
     ctx.body = {
       data: {
-        match
+        authenticated: false
       }
     }
-  })
+    return
+  }
 
-  await T.failure([user, match], async () => {
-    if (user === null || !match) {
-      ctx.body = {
-        data: {
-          match: false
-        }
-      }
+  const token = sign(
+    { id: user.data.id, accountId: user.data.accountId },
+    env.JWT_SECRET,
+    { expiresIn: '1h' }
+  )
+
+  if (!token.success) {
+    throw new NotFound()
+  }
+
+  ctx.set(X_GOOSE_USER_JWT_KEY_HEADER, token.data)
+  ctx.body = {
+    data: {
+      authenticated: true
     }
-  })
+  }
 }

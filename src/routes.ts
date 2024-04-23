@@ -33,26 +33,26 @@ export function register (): Router<any, {}> {
   })
 
   namespace('/accounts', (router) => {
-    router.get('/', Accounts.list)
+    router
+      .get('/', Accounts.list)
+      .post('/', Accounts.create)
 
     nest(router, '/:accountId', (router) => {
-      router.post('/', Accounts.create)
+      router
         .get('/', Accounts.show)
         .put('/', Accounts.update)
         .delete('/', Accounts.del)
 
-      nest(router, '/user', (router) => {
-        router.post('/authenticate', Users.authenticate)
-      })
-
       nest(router, '/users', (router) => {
-        router.get('/', Users.list)
+        router
+          .post('/authenticate', Users.authenticate)
+          .get('/', Users.list)
+          .post('/', Users.create)
 
         nest(router, '/:userId', (router) => {
           router
             .use(Users.security)
             .get('/', Users.show)
-            .post('/', Users.create)
             .delete('/', Users.del)
             .put('/', Users.update)
         })

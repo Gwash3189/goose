@@ -4,7 +4,7 @@ import { Owner, Prisma, PrismaClient } from '@prisma/client'
 import { DefaultArgs } from '@prisma/client/runtime/library'
 import { CtxBuilder, databaseTimeout, getClient } from '../../support'
 import * as OwnerFactory from '../../../src/database/factories/owner'
-import { BadRequest } from '../../../src/response'
+import { UnprocessableEntity } from '../../../src/response'
 
 describe('Accounts.create', () => {
   let prisma: PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>
@@ -35,15 +35,15 @@ describe('Accounts.create', () => {
     })
   })
 
-  describe('when given an valid name', () => {
+  describe('when given an invalid name', () => {
     it('should not create an account', async () => {
       await expect(async () => await create(
         new CtxBuilder()
           .owner(owner)
           .database(prisma)
-          .body({ name: undefined })
+          .body({ name: '' })
           .build()
-      )).rejects.toThrow(BadRequest)
+      )).rejects.toThrow(UnprocessableEntity)
     })
   })
 })

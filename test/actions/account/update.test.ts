@@ -5,7 +5,8 @@ import { DefaultArgs } from '@prisma/client/runtime/library'
 import { CtxBuilder, databaseTimeout, getClient } from '../../support'
 import * as OwnerFactory from '../../../src/database/factories/owner'
 import * as AccountFactory from '../../../src/database/factories/account'
-import { BadRequest } from '../../../src/response'
+import { NotFound, UnprocessableEntity } from '../../../src/response'
+import { randomUUID } from 'crypto'
 
 describe('Accounts.update', () => {
   let prisma: PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>
@@ -48,7 +49,34 @@ describe('Accounts.update', () => {
           .database(prisma)
           .body({ name: '' })
           .build()
-      )).rejects.toThrow(BadRequest)
+      )).rejects.toThrow(UnprocessableEntity)
+    })
+  })
+
+  describe('when given an invalid account id', () => {
+    describe('when the id is not a UUID', () => {
+      it('does not create an account', async () => {
+        await expect(async () => await update(
+          new CtxBuilder()
+            .owner(owner)
+            .params({ accountId: '123' })
+            .database(prisma)
+            .body({ name: 'name' })
+            .build()
+        )).rejects.toThrow(UnprocessableEntity)
+      })
+    })
+    describe('when the id is not in our system', () => {
+      it('does not create an account', async () => {
+        await expect(async () => await update(
+          new CtxBuilder()
+            .owner(owner)
+            .params({ accountId: randomUUID() })
+            .database(prisma)
+            .body({ name: 'name' })
+            .build()
+        )).rejects.toThrow(NotFound)
+      })
     })
   })
 })
