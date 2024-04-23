@@ -28,9 +28,9 @@ async function main (): Promise<[ApiKey, User]> {
     data: {
       key: 'a9ea20d7-61ed-44b9-adf8-1fe8a3d19907',
       expiresAt: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-      owner: {
-        connect: {
-          id: owner.id
+      apiKeyAssignment: {
+        create: {
+          entity: owner.id
         }
       }
     }

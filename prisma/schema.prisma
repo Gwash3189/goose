@@ -10,13 +10,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model Account {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   name      String
-  owner     Owner   @relation(fields: [ownerId], references: [id])
+  owner     Owner    @relation(fields: [ownerId], references: [id])
   ownerId   String
   users     User[]
 }
@@ -26,29 +25,38 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   name      String
-  email     String  @unique
+  email     String   @unique
   password  String
-  account   Account @relation(fields: [accountId], references: [id])
+  account   Account  @relation(fields: [accountId], references: [id])
   accountId String
 }
 
 model Owner {
-  id         String   @id @default(uuid())
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  name       String
-  email      String
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  name      String
+  email     String
   accounts  Account[]
-  apiKeys    ApiKey[]
 }
 
 model ApiKey {
+  id               String             @id @default(uuid())
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  expiresAt        DateTime
+  expired          Boolean            @default(false)
+  key              String             @unique @default(uuid())
+  apiKeyAssignment ApiKeyAssignment?
+}
+
+model ApiKeyAssignment {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  expiresAt DateTime
-  expired   Boolean  @default(false)
-  key       String   @unique @default(uuid())
-  owner     Owner @relation(fields: [ownerId], references: [id])
-  ownerId   String
+  apiKey    ApiKey   @relation(fields: [apiKeyId], references: [id])
+  apiKeyId  String   @unique
+  entity    String   @unique
 }
+
+
