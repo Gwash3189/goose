@@ -1,6 +1,7 @@
 # Database
 
 db/*.sqlite
+prisma/database/*-test*
 
 # Logs
 logs

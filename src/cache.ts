@@ -7,8 +7,8 @@ class _Cache {
     this.data = new Map()
   }
 
-  set (key: string, value: any, { seconds }: { seconds: number }): void {
-    const expiry = Date.now() + (seconds * 1000)
+  set (key: string, value: any, { milliseconds }: { milliseconds: number }): void {
+    const expiry = Date.now() + milliseconds
     this.data.set(key, { value, expiry })
   }
 
@@ -22,6 +22,10 @@ class _Cache {
       return Failure.from(null)
     }
     return Success.from(data.value)
+  }
+
+  clear (): void {
+    this.data.clear()
   }
 }
 

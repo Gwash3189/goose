@@ -11,6 +11,7 @@
     "@types/koa-router": "^7.4.8",
     "@types/node": "^20.11.30",
     "@vitest/coverage-v8": "^1.5.0",
+    "@vitest/ui": "^1.5.0",
     "execa": "^8.0.1",
     "koa-logger": "^3.2.1",
     "prisma": "^5.11.0",
@@ -42,7 +43,9 @@
   "main": "out/index.js",
   "scripts": {
     "test": "vitest",
-    "dev": "tsx watch src/index.ts | pino-pretty -c"
+    "test:coverage": "vitest --coverage --ui",
+    "dev": "tsx watch src/index.ts | pino-pretty -c",
+    "config:generate:jwt": "node -e \"console.log(require('crypto').randomBytes(256).toString('base64'))\""
   },
   "author": "",
   "license": "ISC",

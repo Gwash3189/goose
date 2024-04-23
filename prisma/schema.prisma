@@ -41,22 +41,11 @@ model Owner {
 }
 
 model ApiKey {
-  id               String             @id @default(uuid())
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
-  expiresAt        DateTime
-  expired          Boolean            @default(false)
-  key              String             @unique @default(uuid())
-  apiKeyAssignment ApiKeyAssignment?
-}
-
-model ApiKeyAssignment {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  apiKey    ApiKey   @relation(fields: [apiKeyId], references: [id])
-  apiKeyId  String   @unique
+  expiresAt DateTime
+  expired   Boolean  @default(false)
+  key       String   @unique @default(uuid())
   entity    String   @unique
 }
-
-

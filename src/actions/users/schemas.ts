@@ -48,7 +48,12 @@ export const show = {
   })
 }
 
-export const create = { ...update }
+export const create = {
+  ...update,
+  params: z.object({
+    accountId: z.string().uuid()
+  })
+}
 
 export const authenticate = {
   password,

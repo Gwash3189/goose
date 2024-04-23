@@ -27,6 +27,7 @@ describe('users/create', () => {
         .database(prisma)
         .params({
           accountId: account.id
+
         })
         .body(params)
         .build()

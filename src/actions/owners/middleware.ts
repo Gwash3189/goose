@@ -3,45 +3,42 @@ import { Ctx } from '../../types'
 import { Unauthorized } from '../../response'
 import { Cache } from '../../cache'
 import { type Owner } from '@prisma/client'
+import * as Time from '../../time'
 
-const GOOSE_API_KEY_HEADER = 'x-goose-api-key'
+export const GOOSE_API_KEY_HEADER = 'x-goose-api-key'
 
 export async function authenticate (ctx: Ctx, next: Next): Promise<void> {
-  const { request, state: { database } } = ctx
-  const { headers } = request
-  const apiKey = headers[GOOSE_API_KEY_HEADER]
+  const { state: { database } } = ctx
+  const apiKey = ctx.get(GOOSE_API_KEY_HEADER)
 
-  if (apiKey === undefined && Array.isArray(apiKey)) {
+  if (apiKey === undefined || Array.isArray(apiKey)) {
     throw new Unauthorized('Missing API Key')
   }
 
-  const ownerResult = Cache.get<Owner>(apiKey as string)
+  const ownerResult = Cache.get<Owner>(apiKey)
 
   if (ownerResult.success) {
     ctx.state.owner = ownerResult.data
+    Cache.set(apiKey, ownerResult.data, { milliseconds: Time.minutes(10) })
     return await next()
   }
 
-  const assignment = await database.apiKey.findFirst({
+  const apiKeyRow = await database.apiKey.findFirst({
     where: {
-      key: apiKey as string
+      key: apiKey
     },
     select: {
-      apiKeyAssignment: {
-        select: {
-          entity: true
-        }
-      }
+      entity: true
     }
   })
 
-  if (assignment === null) {
+  if (apiKeyRow === null) {
     throw new Unauthorized('Missing API Key')
   }
 
   const owner = await database.owner.findUnique({
     where: {
-      id: assignment.apiKeyAssignment?.entity
+      id: apiKeyRow.entity
     }
   })
 
@@ -50,6 +47,7 @@ export async function authenticate (ctx: Ctx, next: Next): Promise<void> {
   }
 
   ctx.state.owner = owner
-  Cache.set(apiKey as string, owner, { seconds: 600 })
+  Cache.set(apiKey, owner, { milliseconds: Time.minutes(10) })
+
   return await next()
 }
