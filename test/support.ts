@@ -6,6 +6,10 @@ import { Ctx } from '../src/types'
 
 const clients: Map<number, PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>> = new Map()
 
+function databaseName (id: number): string {
+  return `${id}-test.db`
+}
+
 export function getClient (): PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs> {
   if (clients.size === 0) {
     throw new Error('Client not initialized')
@@ -16,7 +20,7 @@ export function getClient (): PrismaClient<Prisma.PrismaClientOptions, never, De
 
 export async function createTestDatabase (): Promise<void> {
   const id = parseInt(env.VITEST_WORKER_ID?.toString() as string, 10)
-  env.DATABASE_URL = `file:./database/${id}-test.db?mode=memory&cache=shared`
+  env.DATABASE_URL = `file:./database/${databaseName(id)}?mode=memory&cache=shared`
   clients.set(id, new PrismaClient())
   await $`prisma db push --skip-generate --force-reset --accept-data-loss`
 }
@@ -27,7 +31,7 @@ export async function tearDownDatabase (client: PrismaClient<Prisma.PrismaClient
   const id = parseInt(env.VITEST_WORKER_ID?.toString() as string, 10)
   await client.$disconnect()
   clients.delete(id)
-  await $`rm -rf ./prisma/${id}.db ./prisma/${id}.db-journal`
+  await $`rm -rf ./prisma/database/${databaseName(id)} ./prisma/database/${databaseName(id)}-journal`
 }
 
 export class CtxBuilder {
@@ -49,7 +53,13 @@ export class CtxBuilder {
   }
 
   body (body: Record<string, any>): CtxBuilder {
-    return this.request({ body })
+    (this.ctx.request as any) = this.ctx.request === undefined
+      ? (this.ctx.request as any) = {}
+      : this.ctx.request
+
+    ;(this.ctx.request as any).body = { ...(this.ctx.request as any).body, ...body }
+
+    return this
   }
 
   owner (owner: { id: string }): CtxBuilder {
@@ -58,11 +68,6 @@ export class CtxBuilder {
 
   database (database: PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>): CtxBuilder {
     return this.state({ database })
-  }
-
-  request (body: any): CtxBuilder {
-    (this.ctx.request as unknown as any) = { ...this.ctx.request, ...body }
-    return this
   }
 
   state (state: Record<string, any>): CtxBuilder {
@@ -77,7 +82,9 @@ export class CtxBuilder {
 
   build <Body = {}, Query = {}, Params ={}>(): Ctx {
     this.query({})
-    this.ctx.headers = { ...this.ctx.headers ?? {} };
+    this.ctx.headers = { ...this.ctx.headers ?? {} }
+    this.body({});
+    (this.ctx.log as any) = console;
     (this.ctx as unknown as any).set = (header: string, value: any) => {
       this.ctx.headers = { ...this.ctx.headers, [header]: value }
     }

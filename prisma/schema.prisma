@@ -46,6 +46,7 @@ model ApiKey {
   updatedAt DateTime @updatedAt
   expiresAt DateTime
   expired   Boolean  @default(false)
-  key       String   @unique @default(uuid())
-  entity    String   @unique
+  key       String   @unique
+  entity    String   // the id of the entity that the key is associated with (owner, account, user)
+  @@index(entity)
 }

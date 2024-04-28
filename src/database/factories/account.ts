@@ -20,6 +20,9 @@ export async function create (database: PrismaClient, props: Partial<Account> = 
             email: faker.internet.email()
           }
         }
+      },
+      include: {
+        owner: true
       }
     })
   }

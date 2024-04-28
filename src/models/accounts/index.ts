@@ -50,7 +50,7 @@ export async function del (database: Database, { id, ownerId }: { id: string, ow
   }
 }
 
-export async function find (database: Database, { id, ownerId }: { id: string, ownerId: string }): Promise<Result<CastedAccount, Error>> {
+export async function find (database: Database, { id, ownerId }: { id: string, ownerId?: string }): Promise<Result<CastedAccount, Error>> {
   try {
     const account = await database.account.findUnique({
       where: {

@@ -11,7 +11,7 @@ export async function create (ctx: Ctx): Promise<void> {
   )
 
   if (!paramsResult.success) {
-    throw new UnprocessableEntity(paramsResult.error.errors.join(', ').trim())
+    throw new UnprocessableEntity(paramsResult.error.errors[0].message)
   }
 
   const bodyResult = T.ensure<CreateBody>(
@@ -20,7 +20,7 @@ export async function create (ctx: Ctx): Promise<void> {
   )
 
   if (!bodyResult.success) {
-    throw new UnprocessableEntity(bodyResult.error.errors.join(', ').trim())
+    throw new UnprocessableEntity(bodyResult.error.errors[0].message)
   }
 
   const { email, name, password } = bodyResult.data

@@ -1,5 +1,6 @@
 import { Next } from 'koa'
 import { Ctx } from '../types'
+import { ZodError } from 'zod'
 
 export abstract class AbstractBailError extends Error {
   abstract message: string
@@ -12,9 +13,13 @@ export class BailError extends AbstractBailError {
   name = 'InternalServerError'
   status = 500
 
-  constructor (message?: string) {
-    super(message)
-    this.message = message ?? this.message
+  constructor (message?: string | ZodError) {
+    super()
+    if (message instanceof ZodError) {
+      this.message = message.errors[0].message
+    } else {
+      this.message = message ?? this.message
+    }
   }
 }
 
@@ -22,6 +27,15 @@ export class BadRequest extends BailError {
   message = 'Bad Request'
   name = 'BadRequest'
   status = 400
+
+  constructor (message?: string | ZodError) {
+    super()
+    if (message instanceof ZodError) {
+      this.message = message.errors[0].message
+    } else {
+      this.message = message ?? this.message
+    }
+  }
 }
 
 export class InternalServerError extends BailError {}
@@ -30,24 +44,60 @@ export class NotFound extends BailError {
   message = 'Not Found'
   name = 'NotFound'
   status = 404
+
+  constructor (message?: string | ZodError) {
+    super()
+    if (message instanceof ZodError) {
+      this.message = message.errors[0].message
+    } else {
+      this.message = message ?? this.message
+    }
+  }
 }
 
 export class Unauthorized extends BailError {
   message = 'Unauthorized'
   name = 'Unauthorized'
   status = 403
+
+  constructor (message?: string | ZodError) {
+    super()
+    if (message instanceof ZodError) {
+      this.message = message.errors[0].message
+    } else {
+      this.message = message ?? this.message
+    }
+  }
 }
 
 export class UnprocessableEntity extends BailError {
   message = 'Unprocessable Entity'
   name = 'UnprocessableEntity'
   status = 422
+
+  constructor (message?: string | ZodError) {
+    super()
+    if (message instanceof ZodError) {
+      this.message = message.errors[0].message
+    } else {
+      this.message = message ?? this.message
+    }
+  }
 }
 
 export class ServiceUnavailable extends BailError {
   message = 'Service Unavailable'
   name = 'ServiceUnavailable'
   status = 503
+
+  constructor (message?: string | ZodError) {
+    super()
+    if (message instanceof ZodError) {
+      this.message = message.errors[0].message
+    } else {
+      this.message = message ?? this.message
+    }
+  }
 }
 
 export async function bail (ctx: Ctx, next: Next): Promise<void> {

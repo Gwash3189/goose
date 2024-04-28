@@ -1,8 +1,9 @@
 import { ApiKey, PrismaClient, User } from '@prisma/client'
-import bcrypt from 'bcryptjs'
 import { faker } from '@faker-js/faker'
 import * as JWT from '../../src/security/jwt'
 import { env } from '../../src/process'
+import { hash } from '../../src/security/hash'
+import { FromNow } from '../../src/time'
 
 const prisma = new PrismaClient()
 
@@ -14,7 +15,11 @@ async function main (): Promise<[ApiKey, User]> {
   await prisma.owner.deleteMany()
 
   // Hash the password
-  const hashedPassword = await bcrypt.hash('password', 10)
+  const hashedPassword = await hash('password')
+
+  if (!hashedPassword.success) {
+    throw new Error('Failed to hash password')
+  }
 
   // Create new records
   const owner = await prisma.owner.create({
@@ -24,10 +29,15 @@ async function main (): Promise<[ApiKey, User]> {
     }
   })
 
+  const hashedKey = await hash('a9ea20d7-61ed-44b9-adf8-1fe8a3d19907')
+  if (!hashedKey.success) {
+    throw new Error('Failed to hash key')
+  }
+
   const apiKey = await prisma.apiKey.create({
     data: {
-      key: 'a9ea20d7-61ed-44b9-adf8-1fe8a3d19907',
-      expiresAt: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+      key: hashedKey.data,
+      expiresAt: FromNow.years(1),
       entity: owner.id
     }
   })
@@ -49,7 +59,7 @@ async function main (): Promise<[ApiKey, User]> {
       id: '52d34d41-934b-45f8-b2fe-ebfde6acaf1e',
       name: faker.person.firstName(),
       email: 'user@goose.com',
-      password: hashedPassword,
+      password: hashedPassword.data,
       account: {
         connect: {
           id: account.id
@@ -63,7 +73,7 @@ async function main (): Promise<[ApiKey, User]> {
       data: {
         name: faker.person.firstName(),
         email: faker.internet.email(),
-        password: hashedPassword,
+        password: hashedPassword.data,
         account: {
           connect: {
             id: account.id

@@ -95,7 +95,7 @@ describe('users/create', () => {
     })
 
     it('throws an UnprocessableEntity error', async () => {
-      await expect(create(ctx)).rejects.toThrow(UnprocessableEntity)
+      await expect(create(ctx)).rejects.toThrow(new UnprocessableEntity('Invalid uuid'))
     })
   })
 })

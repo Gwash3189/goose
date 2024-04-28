@@ -12,14 +12,14 @@ class _Cache {
     this.data.set(key, { value, expiry })
   }
 
-  get <X>(key: string): Result<X, null> {
+  get <X>(key: string): Result<X, Error> {
     const data = this.data.get(key)
     if (data == null) {
-      return Failure.from(null)
+      return Failure.from(new Error('Key not found'))
     }
     if (Date.now() > data.expiry) {
       this.data.delete(key)
-      return Failure.from(null)
+      return Failure.from(new Error('Key expired'))
     }
     return Success.from(data.value)
   }

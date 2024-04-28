@@ -4,7 +4,7 @@ import { Failure, Result, Success } from '../../types'
 import { hash } from '../../security/hash'
 
 type PermittedProperties = Omit<Record<keyof User, boolean>, 'password'>
-type CastedUser = Omit<User, 'password'>
+export type CastedUser = Omit<User, 'password'>
 
 export async function del (database: Database, { id, accountId }: { id: string, accountId: string }): Promise<Result<CastedUser, Error>> {
   try {
@@ -79,7 +79,7 @@ export async function byEmail (database: Database, { email }: { email: string })
     : Success.from(user)
 }
 
-export async function find (database: Database, { id, accountId }: { id: string, accountId: string }): Promise<Result<CastedUser, false>> {
+export async function find (database: Database, { id, accountId }: { id: string, accountId?: string }): Promise<Result<CastedUser, false>> {
   const user = await database.user.findUnique({
     where: {
       id,

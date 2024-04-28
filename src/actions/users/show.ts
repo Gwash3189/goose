@@ -14,7 +14,7 @@ export async function show (ctx: Ctx): Promise<void> {
     throw new NotFound()
   }
 
-  const { accountId, userId } = paramsResult.data
+  const { userId, accountId } = paramsResult.data
 
   const showResult = await Users
     .find(ctx.state.database, { id: userId, accountId })

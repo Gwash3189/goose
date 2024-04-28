@@ -24,12 +24,14 @@ export function register (): Router<any, {}> {
     router.get('/', Health.show)
   })
 
+  namespace('/api-keys', (router) => {
+    router
+      .post('/rotate', ApiKeys.rotate)
+      .post('/', ApiKeys.create)
+  })
+
   namespace('/owners', (router) => {
     router.get('/me', Owners.me)
-
-    nest(router, '/api_keys', (router) => {
-      router.post('/rotate', ApiKeys.rotate)
-    })
   })
 
   namespace('/accounts', (router) => {

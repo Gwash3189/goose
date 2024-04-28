@@ -13,7 +13,7 @@ type ZodTuple = [z.ZodType<any, any, any>, unknown]
 export type ZodTupleArray = ZodTuple[]
 
 // export type Ctx<Params = { params: {} }, Query = { query: {} }, Body = { request: { body: {} } }> = RouterContext<{ database: Database, owner: Owner }> & Params & Query & Body
-export type Ctx = RouterContext<{ database: Database, owner: Owner }>
+export type Ctx = RouterContext<{ database: Database, owner: Owner, key: string }>
 
 export function cast<X> (x: any): X {
   return x

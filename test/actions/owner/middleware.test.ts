@@ -11,6 +11,7 @@ import { randomUUID } from 'crypto'
 import { minutes } from '../../../src/time'
 import { afterEach } from 'node:test'
 import { Unauthorized } from '../../../src/response'
+import * as ApiKeys from '../../../src/models/api_keys'
 
 describe('Owners.authenticate middleware', () => {
   describe('when given a valid API key', () => {
@@ -27,7 +28,7 @@ describe('Owners.authenticate middleware', () => {
       apiKey = await ApiKeyFactory.create(prisma, { entity: owner.id })
       ctx = new CtxBuilder()
         .database(prisma)
-        .headers({ [GOOSE_API_KEY_HEADER]: apiKey.key })
+        .headers({ [GOOSE_API_KEY_HEADER]: ApiKeys.serialize(apiKey) })
         .build()
 
       await authenticate(ctx, next)
@@ -42,7 +43,7 @@ describe('Owners.authenticate middleware', () => {
     })
 
     it('sets the owner in the cache via the api key', async () => {
-      expect((Cache.get(apiKey.key) as Success<Owner>).data).to.deep.equal(owner)
+      expect((Cache.get(apiKey.id) as Success<Owner>).data).to.deep.equal(owner)
     })
   })
 

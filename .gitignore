@@ -1,7 +1,11 @@
 # Database
 
 db/*.sqlite
-prisma/database/*-test*
+prisma/database/
+
+# TSC Build
+
+build
 
 # Logs
 logs
