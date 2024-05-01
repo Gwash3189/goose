@@ -47,6 +47,20 @@ export async function create (database: Database, { entity, expiresAt }: { entit
   }
 }
 
+export async function list (database: Database, { entity }: { entity: string }): Promise<Result<ApiKey[], Error>> {
+  try {
+    const apiKeys = await database.apiKey.findMany({
+      where: {
+        entity
+      }
+    })
+
+    return Success.from(apiKeys)
+  } catch (error) {
+    return Failure.from(error as Error)
+  }
+}
+
 export async function entity<X extends FindEntityType> (database: Database, { entityId }: { entityId: string }): Promise<Result<X, null>> {
   const owner = await Owners.find(database, { id: entityId })
 
@@ -83,6 +97,20 @@ export async function find (database: Database, { id }: { id: string }): Promise
     if (apiKey === null) {
       return Failure.from(new Error('API key not found'))
     }
+
+    return Success.from(apiKey)
+  } catch (error) {
+    return Failure.from(error as Error)
+  }
+}
+
+export async function del (database: Database, { id }: { id: string }): Promise<Result<ApiKey, Error>> {
+  try {
+    const apiKey = await database.apiKey.delete({
+      where: {
+        id
+      }
+    })
 
     return Success.from(apiKey)
   } catch (error) {

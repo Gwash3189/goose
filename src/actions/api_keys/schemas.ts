@@ -12,11 +12,14 @@ export type CreateBody = z.infer<typeof create.body>
 
 export type RotateBody = z.infer<typeof rotate.body>
 
-export type VerifyBody = z.infer<typeof rotate.body>
+export type VerifyBody = z.infer<typeof verify.body>
+
+export type RevokeBody = z.infer<typeof revoke.body>
 
 export const list = {
   params: z.object({
-    entityId: z.string()
+    accountId: z.string().optional(),
+    userId: z.string().optional()
   })
 }
 
@@ -44,6 +47,12 @@ export const rotate = {
 }
 
 export const verify = {
+  body: z.object({
+    key: z.string()
+  })
+}
+
+export const revoke = {
   body: z.object({
     key: z.string()
   })

@@ -78,6 +78,7 @@ export class UnprocessableEntity extends BailError {
   constructor (message?: string | ZodError) {
     super()
     if (message instanceof ZodError) {
+      console.log(message.errors)
       this.message = message.errors[0].message
     } else {
       this.message = message ?? this.message

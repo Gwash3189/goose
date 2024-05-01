@@ -27,6 +27,8 @@ export function register (): Router<any, {}> {
   namespace('/api-keys', (router) => {
     router
       .post('/rotate', ApiKeys.rotate)
+      .post('/verify', ApiKeys.verify)
+      .post('/revoke', ApiKeys.revoke)
       .post('/', ApiKeys.create)
   })
 
@@ -45,6 +47,10 @@ export function register (): Router<any, {}> {
         .put('/', Accounts.update)
         .delete('/', Accounts.del)
 
+      // nest(router, '/api-keys', (router) => {
+      //   router.get('/', ApiKeys.list)
+      // })
+
       nest(router, '/users', (router) => {
         router
           .post('/authenticate', Users.authenticate)
@@ -57,6 +63,10 @@ export function register (): Router<any, {}> {
             .get('/', Users.show)
             .delete('/', Users.del)
             .put('/', Users.update)
+
+          // nest(router, '/api-keys', (router) => {
+          //   router.get('/', ApiKeys.list)
+          // })
         })
       })
     })
