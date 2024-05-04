@@ -1,24 +1,26 @@
-import { Ctx } from '../../types'
 import * as Accounts from '../../models/accounts'
-import * as T from '../../types'
-import { type CreateBody, update as CreateSchema } from './schemas'
+import { create as CreateSchema } from './schemas'
 import { UnprocessableEntity } from '../../response'
+import { Action } from '../builder'
 
-export async function create (ctx: Ctx): Promise<void> {
-  const bodyResult = T.ensure<CreateBody>(ctx.request.body, CreateSchema.body)
+export const create = Action
+  .create((builder) => {
+    builder
+      .body(CreateSchema.body)
+      .returns(CreateSchema.returns)
+      .action(async (ctx) => {
+        const { name } = ctx.request.body
+        const { id: ownerId } = ctx.state.owner
+        const createResult = await Accounts
+          .create(
+            ctx.state.database,
+            { name, ownerId }
+          )
 
-  if (!bodyResult.success) {
-    throw new UnprocessableEntity(bodyResult.error.errors.join(', ').trim())
-  }
-  const { name } = bodyResult.data
-  const { id: ownerId } = ctx.state.owner
-  const createResult = await Accounts.create(ctx.state.database, { name, ownerId })
+        if (!createResult.success) {
+          throw new UnprocessableEntity()
+        }
 
-  if (!createResult.success) {
-    throw new UnprocessableEntity()
-  }
-
-  ctx.body = {
-    data: createResult.data
-  }
-}
+        return createResult.data
+      })
+  })

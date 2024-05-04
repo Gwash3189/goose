@@ -1,7 +1,8 @@
-import { type RouterContext } from 'koa-router'
 import { type Database } from './database'
 import { type Owner } from '@prisma/client'
 import { z } from 'zod'
+import { DefaultContext, ExtendableContext, ParameterizedContext, Request } from 'koa'
+import { ParsedUrlQuery } from 'querystring'
 
 export class ErrorDto extends Error {
   constructor (public readonly result: z.SafeParseReturnType<{ [x: string]: any }, { [x: string]: any }>) {
@@ -13,7 +14,12 @@ type ZodTuple = [z.ZodType<any, any, any>, unknown]
 export type ZodTupleArray = ZodTuple[]
 
 // export type Ctx<Params = { params: {} }, Query = { query: {} }, Body = { request: { body: {} } }> = RouterContext<{ database: Database, owner: Owner }> & Params & Query & Body
-export type Ctx = RouterContext<{ database: Database, owner: Owner, key: string }>
+export interface Ctx<B = Record<string, any>, P = Record<string, any>, Q extends ParsedUrlQuery = Record<string, any>> extends ParameterizedContext<DefaultContext, ExtendableContext> {
+  state: { database: Database, owner: Owner }
+  request: { body: B } & Omit<Request, 'body'>
+  params: P
+  query: Q
+}
 
 export function cast<X> (x: any): X {
   return x
@@ -31,12 +37,6 @@ export function ensure<X> (x: any, schema: z.ZodType): Result<X, z.ZodError> {
 
 interface TaggedType {
   kind: string
-}
-
-export interface Operation<P, F> extends TaggedType {
-  readonly kind: `operation:${string}`
-  params: P
-  func: F
 }
 
 export interface Success<T> extends TaggedType {
@@ -72,4 +72,4 @@ export class Failure<E> implements Failure<E> {
   constructor (public readonly error: E) {}
 }
 
-export type Result<T, E> = (Success<T> | Failure<E>)
+export type Result<T, E> = Success<T> | Failure<E>

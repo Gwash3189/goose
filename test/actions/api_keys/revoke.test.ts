@@ -37,7 +37,7 @@ describe('api_keys/revoke', () => {
     });
   })
 
-  describe.only('when the provided request is invalid', () => {
+  describe('when the provided request is invalid', () => {
     let prisma: PrismaClient
     let account: Account
     let keyRecord: ApiKey

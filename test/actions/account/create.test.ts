@@ -26,7 +26,7 @@ describe('Accounts.create', () => {
       )
     })
 
-    it('should create an account', async () => {
+    it('creates an account', async () => {
       expect(await prisma.account.findFirst({
         where: {
           name: 'test'
@@ -36,7 +36,7 @@ describe('Accounts.create', () => {
   })
 
   describe('when given an invalid name', () => {
-    it('should not create an account', async () => {
+    it('does not create an account', async () => {
       await expect(async () => await create(
         new CtxBuilder()
           .owner(owner)

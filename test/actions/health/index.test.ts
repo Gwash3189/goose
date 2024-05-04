@@ -2,7 +2,7 @@ import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { show } from '../../../src/actions/health'
 import { Ctx } from '../../../src/types'
 import { ServiceUnavailable } from '../../../src/response'
-import { CtxBuilder, databaseTimeout, getClient } from '../../support'
+import { CtxBuilder, getClient } from '../../support'
 import { Prisma, PrismaClient } from '@prisma/client'
 import { DefaultArgs } from '@prisma/client/runtime/library'
 import * as OwnerFactory from '../../../src/database/factories/owner'
@@ -13,7 +13,7 @@ describe('health', () => {
 
   beforeEach(async () => {
     prisma = await getClient()
-  }, databaseTimeout)
+  })
 
   describe('when the database can be reached', () => {
     beforeEach(async () => {
@@ -25,7 +25,7 @@ describe('health', () => {
     })
 
     it('should return healthy', async () => {
-      expect(ctx.body).to.deep.equal({ healthy: true })
+      expect(ctx.body.data).to.deep.equal({ healthy: true })
     })
   })
 

@@ -78,7 +78,6 @@ export class UnprocessableEntity extends BailError {
   constructor (message?: string | ZodError) {
     super()
     if (message instanceof ZodError) {
-      console.log(message.errors)
       this.message = message.errors[0].message
     } else {
       this.message = message ?? this.message
@@ -101,7 +100,7 @@ export class ServiceUnavailable extends BailError {
   }
 }
 
-export async function bail (ctx: Ctx, next: Next): Promise<void> {
+export async function bail (ctx, next: Next): Promise<void> {
   try {
     await next()
   } catch (error) {

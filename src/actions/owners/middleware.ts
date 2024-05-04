@@ -1,5 +1,4 @@
-import { type Next } from 'koa'
-import { Ctx } from '../../types'
+import { Context, type Next } from 'koa'
 import { Unauthorized } from '../../response'
 import { Cache } from '../../cache'
 import { type Owner } from '@prisma/client'
@@ -9,7 +8,7 @@ import * as Owners from '../../models/owners'
 
 export const GOOSE_API_KEY_HEADER = 'x-goose-owner-api-key'
 
-export async function authenticate (ctx: Ctx, next: Next): Promise<void> {
+export async function authenticate (ctx: Context, next: Next): Promise<void> {
   const { state: { database } } = ctx
   const apiKey = ctx.get(GOOSE_API_KEY_HEADER)
 

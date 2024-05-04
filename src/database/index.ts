@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client'
+import { env } from '../process'
+import { getClient } from '../../test/support'
 
-export const database = new PrismaClient()
+export const database = env.NODE_ENV === 'test' ? getClient() : new PrismaClient()
 export type Database = typeof database
 
 export function paginate (page: string, pageSize: string): { take: number, offset: number } {

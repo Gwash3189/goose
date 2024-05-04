@@ -12,7 +12,7 @@ function databaseName (id: number): string {
 
 export function getClient (): PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs> {
   if (clients.size === 0) {
-    throw new Error('Client not initialized')
+    createTestDatabase().catch(console.error)
   }
 
   return clients.get(parseInt(env.VITEST_WORKER_ID?.toString() as string, 10)) as PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>
@@ -84,7 +84,13 @@ export class CtxBuilder {
     this.query({})
     this.ctx.headers = { ...this.ctx.headers ?? {} }
     this.body({});
-    (this.ctx.log as any) = console;
+    (this.ctx.log as any) = {
+      info: () => false,
+      error: () => false,
+      warn: () => false,
+      debug: () => false
+    };
+
     (this.ctx as unknown as any).set = (header: string, value: any) => {
       this.ctx.headers = { ...this.ctx.headers, [header]: value }
     }

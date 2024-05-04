@@ -20,7 +20,13 @@ export type CreateBody = z.infer<typeof bodySchema>
 export const update = {
   name: nameSchema,
   params: paramsSchema,
-  body: bodySchema
+  body: bodySchema,
+  returns: z.object({
+    id: z.string(),
+    name: z.string(),
+    createdAt: z.date(),
+    updatedAt: z.date()
+  })
 }
 
 export const create = { ...update }

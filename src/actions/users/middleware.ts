@@ -1,12 +1,12 @@
-import { Ctx } from '../../types'
 import { X_GOOSE_USER_JWT_KEY_HEADER } from './authenticate'
 import * as T from '../../types'
 import { z } from 'zod'
 import { env } from '../../process'
 import { BadRequest } from '../../response'
 import { verify } from '../../security/jwt'
+import { Context } from 'koa'
 
-export async function security (ctx: Ctx, next: () => Promise<void>): Promise<void> {
+export async function security (ctx: Context, next: () => Promise<void>): Promise<void> {
   const headerResult = T.ensure<string>(ctx.get(X_GOOSE_USER_JWT_KEY_HEADER), z.string())
 
   if (!headerResult.success) {

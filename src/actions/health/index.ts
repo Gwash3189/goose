@@ -1,19 +1,24 @@
 import { Ctx } from '../../types'
 import * as Owners from '../../models/owners'
 import { ServiceUnavailable } from '../../response'
+import { Action } from '../builder'
+import { z } from 'zod'
 
-export async function show (ctx: Ctx): Promise<void> {
-  try {
-    const result = await Owners.many(ctx.state.database)
+export const show = Action
+  .create((builder) => {
+    builder
+      .returns(z.object({
+        healthy: z.boolean()
+      }))
+      .action(async (ctx: Ctx) => {
+        const result = await Owners.many(ctx.state.database)
 
-    if (!result.success) {
-      throw new ServiceUnavailable()
-    }
+        if (!result.success) {
+          throw new ServiceUnavailable()
+        }
 
-    ctx.body = {
-      healthy: result.data.length > 0
-    }
-  } catch (error) {
-    throw new ServiceUnavailable()
-  }
-}
+        return {
+          healthy: result.data.length >= 0
+        }
+      })
+  })
