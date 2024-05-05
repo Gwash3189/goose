@@ -1,9 +1,0 @@
--- CreateTable
-CREATE TABLE "ApiKey" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    "key" TEXT NOT NULL,
-    "ownerId" TEXT NOT NULL,
-    CONSTRAINT "ApiKey_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "Owner" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
-);
