@@ -10,7 +10,16 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_05_05_053639) do
+ActiveRecord::Schema[7.1].define(version: 2024_05_05_101848) do
+  create_table "accounts", force: :cascade do |t|
+    t.string "name", null: false
+    t.integer "customer_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["customer_id"], name: "index_accounts_on_customer_id"
+    t.index ["name"], name: "index_accounts_on_name", unique: true
+  end
+
   create_table "api_keys", force: :cascade do |t|
     t.boolean "expired", default: false
     t.datetime "expires_at"
@@ -31,4 +40,17 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_05_053639) do
     t.index ["email"], name: "index_customers_on_email", unique: true
   end
 
+  create_table "users", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "email", null: false
+    t.string "password", null: false
+    t.integer "account_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_users_on_account_id"
+    t.index ["email"], name: "index_users_on_email", unique: true
+  end
+
+  add_foreign_key "accounts", "customers"
+  add_foreign_key "users", "accounts"
 end

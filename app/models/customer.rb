@@ -13,7 +13,8 @@
 #  index_customers_on_email  (email) UNIQUE
 #
 class Customer < ApplicationRecord
-  has_many :api_keys, as: :entity
+  has_many :api_keys, as: :entity, dependent: :destroy
+  has_many :accounts, dependent: :destroy
 
   validates :name, presence: true
   validates :email, presence: true

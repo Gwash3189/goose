@@ -14,9 +14,38 @@ customer = Customer.create(
   email: 'goose@development.com'
 )
 
-uuid_for_key = SecureRandom.uuid
-
 key = ApiKey.generate(entity: customer)
 
-puts "Customer created: #{customer.id}"
-puts "API Key #{uuid_for_key} created for customer: #{customer.id}"
+1.times do
+  Account.create(
+    name: 'Goose Account',
+    customer:
+  )
+
+  k = ApiKey.generate(entity: Account.first)
+  puts "API Key #{k[:raw_key]} created for account: #{Account.first.id}"
+end
+
+10.times do
+  puts "Creating account for customer: #{customer.id}"
+  Account.create(
+    name: Faker::Company.name,
+    customer:
+  )
+end
+
+acc = Account.where(name: 'Goose Account').first
+
+puts "Creating users for account: #{acc.id}"
+100.times do
+  u = User.create(
+    name: Faker::Name.name,
+    email: Faker::Internet.email,
+    password: BCrypt::Password.create('password'),
+    account: acc
+  )
+  k = ApiKey.generate(entity: u)
+  puts "API Key #{k[:raw_key]} created for user: #{u.id}"
+end
+
+puts "API Key #{key[:raw_key]} created for customer: #{customer.id}"

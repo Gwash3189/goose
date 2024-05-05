@@ -45,10 +45,10 @@ end
 group :development do
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"
+  gem "rubocop", "~> 1.63"
+  gem "faker", "~> 3.3"
   gem "annotate", "~> 3.2"
 end
 
 
 
-
-gem "rubocop", "~> 1.63"
