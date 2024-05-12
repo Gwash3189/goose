@@ -68,4 +68,5 @@ Rails.application.configure do
 
   # Raise error when a before_action's only/except options reference missing actions
   config.action_controller.raise_on_missing_callback_actions = true
+  config.credentials.api_key_hmac_secret = 'cae7ce49bad45aa5b1bf5af7f9e8c4b4ba908fe918e4392879314a3d2a8c75d4'
 end

@@ -1,15 +1,9 @@
-class CustomersController < ApplicationController
+class CustomersController < AuthenticatedController
   before_action :set_customer, only: %i[ show update destroy ]
-
-  # GET /customers
-  def index
-    @customers = Customer.all
-
-    render json: @customers
-  end
 
   # GET /customers/1
   def show
+    binding.pry
     render json: @customer
   end
 
@@ -41,7 +35,8 @@ class CustomersController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_customer
-      @customer = Customer.find(params[:id])
+      binding.pry
+      @customer = entity || Customer.find(params[:id])
     end
 
     # Only allow a list of trusted parameters through.

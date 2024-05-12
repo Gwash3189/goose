@@ -22,4 +22,8 @@
 class User < ApplicationRecord
   belongs_to :account
   has_many :api_keys, as: :entity, dependent: :destroy
+
+  validates :email, presence: true
+  validates :name, presence: true
+  validates :password, presence: true
 end

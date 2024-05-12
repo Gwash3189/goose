@@ -1,14 +1,13 @@
 Rails.application.routes.draw do
-  resources :customers do
+  resources :customers, except: [:index] do
+    get 'me', to: 'customers#me', on: :member
     resources :accounts do
       resources :users
     end
     resources :api_keys do
       put 'rotate', to: 'api_keys#rotate'
       patch 'rotate', to: 'api_keys#rotate'
-
     end
-
   end
 
 

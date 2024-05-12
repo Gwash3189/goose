@@ -18,48 +18,50 @@
 #
 class ApiKey < ApplicationRecord
   belongs_to :entity, polymorphic: true
+  HMAC_SECRET_KEY = Rails.configuration.credentials.api_key_hmac_secret
 
   validates :entity, presence: true
   validates :key, presence: true
   validates :expires_at, presence: true
   validates :expired, inclusion: { in: [true, false] }
 
-  def self.generate(entity:, expires_at: 1.year.from_now)
-    raw_key = SecureRandom.uuid
-    record = ApiKey.create(
-      entity: entity,
-      expired: false,
-      expires_at: expires_at,
-      key: BCrypt::Password.create(raw_key)
-    )
+  before_create :generate_raw_key
+  after_initialize :set_defaults
 
-    {
-      record:,
-      raw_key: raw_key
-    }
-  end
-
-  def self.create_key
-    raw_key = SecureRandom.uuid
-    {
-      raw_key:,
-      key: BCrypt::Password.create(raw_key)
-    }
-  end
+  attr_accessor :raw_key
 
   def self.find_by_key(key)
-    find_by(key: key)
+    find_by(key: BCrypt::Password.create(key))
   end
 
   def self.find_by_key!(key)
     find_by!(key: key)
   end
 
-  def expired?
-    expires_at < Time.zone.now
+  def self.hash_raw_key(raw_key)
+    OpenSSL::HMAC.hexdigest(
+      "SHA256",
+      HMAC_SECRET_KEY,
+      raw_key
+    )
   end
 
   def expire!
-    update!(expired: true)
+    update!(expired: true, expired_at: 1.second.ago)
+  end
+
+  private
+
+  def generate_raw_key
+    self.raw_key = SecureRandom.uuid_v4 unless key.present?
+  end
+
+  def set_defaults
+    self.expired = false unless expired.present?
+    self.expires_at = 1.year.from_now unless expires_at.present?
+  end
+
+  def hash_raw_key
+    self.key = self.class.hash_raw_key(self.raw_key)
   end
 end
