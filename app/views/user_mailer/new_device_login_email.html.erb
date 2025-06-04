@@ -1,0 +1,30 @@
+<!-- app/views/user_mailer/new_device_login_email.html.erb -->
+<h1>New login to your account</h1>
+
+<p>Hi <%= @user.full_name.presence || 'there' %>,</p>
+
+<p>We noticed a new login to your account:</p>
+
+<div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
+  <p><strong>Time:</strong> <%= @login_time %></p>
+  <p><strong>Device:</strong> <%= @device_name %></p>
+  <p><strong>IP Address:</strong> <%= @ip_address %></p>
+  <% if @location %>
+    <p><strong>Location:</strong> <%= @location %></p>
+  <% end %>
+</div>
+
+<div class="alert">
+  <strong>Don't recognize this login?</strong><br>
+  If this wasn't you, please:
+  <ol>
+    <li>Change your password immediately</li>
+    <li>Review your account activity</li>
+    <li>Contact support at <a href="mailto:<%= @support_email %>"><%= @support_email %></a></li>
+  </ol>
+</div>
+
+<p>
+  Best regards,<br>
+  The <%= ENV.fetch('APP_NAME', 'YourApp') %> Team
+</p>

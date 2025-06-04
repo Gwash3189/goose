@@ -1,0 +1,9 @@
+<!-- app/views/layouts/mailer.text.erb -->
+<%= yield %>
+
+--
+© <%= Date.current.year %> <%= ENV.fetch('APP_NAME', 'YourApp') %>. All rights reserved.
+<%= ENV.fetch('COMPANY_ADDRESS', '123 Main St, City, State 12345') %>
+
+Unsubscribe: <%= ENV.fetch('FRONTEND_URL', 'http://localhost:3001') %>/unsubscribe
+Privacy Policy: <%= ENV.fetch('FRONTEND_URL', 'http://localhost:3001') %>/privacy

@@ -1,0 +1,27 @@
+<!-- app/views/user_mailer/account_invitation_email.html.erb -->
+<h1>You've been invited to join <%= @account.name %></h1>
+
+<p>Hi <%= @user.full_name.presence || 'there' %>,</p>
+
+<p><strong><%= @invited_by.full_name %></strong> has invited you to join <strong><%= @account.name %></strong> on <%= ENV.fetch('APP_NAME', 'YourApp') %>.</p>
+
+<% if @user.email_verified? %>
+  <p style="text-align: center; margin: 30px 0;">
+    <a href="<%= @login_url %>" class="button">Accept Invitation</a>
+  </p>
+<% else %>
+  <p>Please verify your email address first to accept this invitation.</p>
+<% end %>
+
+<h2>About <%= @account.name %></h2>
+<p>You'll be able to:</p>
+<ul>
+  <li>Collaborate with team members</li>
+  <li>Access shared resources</li>
+  <li>Contribute to projects</li>
+</ul>
+
+<p>
+  Best regards,<br>
+  The <%= ENV.fetch('APP_NAME', 'YourApp') %> Team
+</p>

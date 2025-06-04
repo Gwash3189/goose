@@ -1,0 +1,27 @@
+<!-- app/views/user_mailer/welcome_email.html.erb -->
+<h1>Welcome to <%= ENV.fetch('APP_NAME', 'YourApp') %>!</h1>
+
+<p>Hi <%= @user.full_name.presence || 'there' %>,</p>
+
+<p>Your email has been verified and your account is now active. We're excited to have you on board!</p>
+
+<h2>Getting Started</h2>
+<p>Here are a few things you can do to get started:</p>
+<ul>
+  <li>Complete your profile</li>
+  <li>Create your first project</li>
+  <li>Invite team members</li>
+  <li>Explore our features</li>
+</ul>
+
+<p style="text-align: center; margin: 30px 0;">
+  <a href="<%= @login_url %>" class="button">Go to Dashboard</a>
+</p>
+
+<h2>Need Help?</h2>
+<p>Check out our <a href="<%= ENV.fetch('FRONTEND_URL', 'http://localhost:3001') %>/help">Help Center</a> or reply to this email if you have any questions.</p>
+
+<p>
+  Best regards,<br>
+  The <%= ENV.fetch('APP_NAME', 'YourApp') %> Team
+</p>

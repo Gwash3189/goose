@@ -1,0 +1,15 @@
+<!-- app/views/user_mailer/verification_email.text.erb -->
+Verify your email address
+
+Hi <%= @user.full_name.presence || 'there' %>,
+
+Thanks for signing up! Please confirm your email address by clicking the link below:
+
+<%= @verification_url %>
+
+This link will expire in 24 hours for security reasons.
+
+If you didn't create an account with us, please ignore this email.
+
+Best regards,
+The <%= ENV.fetch('APP_NAME', 'YourApp') %> Team
