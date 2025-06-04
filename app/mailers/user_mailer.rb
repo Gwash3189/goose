@@ -11,8 +11,8 @@ class UserMailer < ApplicationMailer
       to: user.email,
       subject: "Please verify your email address"
     ) do |format|
-      format.html { render 'verification_email' }
-      format.text { render 'verification_email' }
+      format.html { render "verification_email" }
+      format.text { render "verification_email" }
     end
   end
 
@@ -31,7 +31,7 @@ class UserMailer < ApplicationMailer
   def reset_password_email(user)
     @user = user
     @reset_url = reset_password_url(token: user.reset_password_token)
-    @expires_in = '2 hours'
+    @expires_in = "2 hours"
 
     mail(
       to: user.email,
@@ -42,8 +42,8 @@ class UserMailer < ApplicationMailer
   # Password changed notification
   def password_changed_email(user)
     @user = user
-    @support_email = ENV.fetch('SUPPORT_EMAIL', 'support@yourapp.com')
-    @changed_at = Time.current.strftime('%B %d, %Y at %I:%M %p %Z')
+    @support_email = ENV.fetch("SUPPORT_EMAIL", "support@yourapp.com")
+    @changed_at = Time.current.strftime("%B %d, %Y at %I:%M %p %Z")
 
     mail(
       to: user.email,
@@ -70,8 +70,8 @@ class UserMailer < ApplicationMailer
     @device_name = device_info[:device_name]
     @ip_address = device_info[:ip_address]
     @location = device_info[:location] # You'd need to implement IP geolocation
-    @login_time = Time.current.strftime('%B %d, %Y at %I:%M %p %Z')
-    @support_email = ENV.fetch('SUPPORT_EMAIL', 'support@yourapp.com')
+    @login_time = Time.current.strftime("%B %d, %Y at %I:%M %p %Z")
+    @support_email = ENV.fetch("SUPPORT_EMAIL", "support@yourapp.com")
 
     mail(
       to: user.email,
@@ -82,7 +82,7 @@ class UserMailer < ApplicationMailer
   private
 
   def app_name
-    ENV.fetch('APP_NAME', 'YourApp')
+    ENV.fetch("APP_NAME", "YourApp")
   end
 
   def verify_email_url(token:)

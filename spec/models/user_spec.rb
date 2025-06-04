@@ -50,7 +50,7 @@ RSpec.describe User, type: :model do
     it 'is not valid with an invalid email format' do
       user = build(:user, email: 'invalid_email')
       expect(user).not_to be_valid
-      expect(user.errors[:email]).to include("is invalid")
+      expect(user.errors[:email]).to include("must be a valid email address")
     end
 
     it 'is not valid without a password for a new record' do
@@ -129,12 +129,13 @@ RSpec.describe User, type: :model do
     end
   end
 
-  describe '#reset_password!' do
-    it 'updates password and removes reset token information' do
+  describe 'password reset' do
+    it 'can update password and clear reset token' do
       user = create(:user, :with_reset_token)
+      original_token = user.reset_password_token
 
-      new_password = 'new_secret_password'
-      user.reset_password!(new_password)
+      new_password = "NewPassword123"
+      user.update!(password: new_password, reset_password_token: nil, reset_password_sent_at: nil)
 
       expect(user.reset_password_token).to be_nil
       expect(user.reset_password_sent_at).to be_nil
@@ -160,17 +161,17 @@ RSpec.describe User, type: :model do
 
   describe 'has_secure_password' do
     it 'encrypts password' do
-      user = create(:user, password: 'password123')
-      expect(user.password_digest).not_to eq('password123')
+      user = create(:user, password: 'Password123')
+      expect(user.password_digest).not_to eq('Password123')
     end
 
     it 'can authenticate with correct password' do
-      user = create(:user, password: 'password123')
-      expect(user.authenticate('password123')).to eq(user)
+      user = create(:user, password: 'Password123')
+      expect(user.authenticate('Password123')).to eq(user)
     end
 
     it 'cannot authenticate with incorrect password' do
-      user = create(:user, password: 'password123')
+      user = create(:user, password: 'Password123')
       expect(user.authenticate('wrong_password')).to be false
     end
   end

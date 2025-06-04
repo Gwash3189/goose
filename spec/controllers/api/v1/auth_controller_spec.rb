@@ -1,8 +1,11 @@
 require 'rails_helper'
 
 RSpec.describe Api::V1::AuthController, type: :controller do
+  include ActiveJob::TestHelper
+
   before do
-    # Remove mailer stubbing to allow real delivery for test assertions
+    # Clear job queue and deliveries before each test
+    clear_enqueued_jobs
     ActionMailer::Base.deliveries.clear
   end
 
@@ -10,7 +13,7 @@ RSpec.describe Api::V1::AuthController, type: :controller do
     let(:valid_params) do
       {
         email: 'test@example.com',
-        password: 'password123',
+        password: "Password123",
         full_name: 'Test User'
       }
     end
@@ -18,7 +21,7 @@ RSpec.describe Api::V1::AuthController, type: :controller do
     let(:user_params) do
       {
         email: 'newuser@example.com',
-        password: 'password123',
+        password: "Password123",
         full_name: 'New User'
       }
     end
@@ -59,7 +62,7 @@ RSpec.describe Api::V1::AuthController, type: :controller do
 
       it 'returns error messages' do
         post :register, params: invalid_params, as: :json
-        expect(json_response['errors']).to include(/email/i)
+        expect(json_response['details']['email']).to include("can't be blank")
       end
     end
 
@@ -76,7 +79,8 @@ RSpec.describe Api::V1::AuthController, type: :controller do
         expect(response).to have_http_status(:created)
         expect(json_response['user']['email']).to eq(user.email)
         expect(json_response['account']['id']).to eq(account.id)
-        expect(ActionMailer::Base.deliveries.count).to be > 0
+        expect(enqueued_jobs.size).to eq(1)
+        expect(enqueued_jobs.first[:job]).to eq(ActionMailer::MailDeliveryJob)
       end
     end
     context 'when registering to an existing account' do
@@ -93,14 +97,15 @@ RSpec.describe Api::V1::AuthController, type: :controller do
         expect(response).to have_http_status(:created)
         expect(json_response['user']['email']).to eq(user.email)
         expect(json_response['account']['id']).to eq(account.id)
-        expect(ActionMailer::Base.deliveries.count).to be > 0
+        expect(enqueued_jobs.size).to eq(1)
+        expect(enqueued_jobs.first[:job]).to eq(ActionMailer::MailDeliveryJob)
       end
     end
     context 'when registering to a non-existent account' do
       it 'returns not found error' do
         post :register, params: user_params.merge(account_id: 999999), as: :json
         expect(response).to have_http_status(:not_found)
-        expect(json_response['errors']).to include('Account not found')
+        expect(json_response['message']).to include('Account not found')
       end
     end
 
@@ -108,14 +113,14 @@ RSpec.describe Api::V1::AuthController, type: :controller do
       it 'returns validation errors' do
         post :register, params: { email: '', password: '', account_name: 'Test Account' }, as: :json
         expect(response).to have_http_status(:unprocessable_entity)
-        expect(json_response['errors']).to be_present
+        expect(json_response['details']).to be_present
       end
     end
   end
 
   describe 'POST #login' do
-    let(:user) { create(:user, password: 'password123') }
-    let(:verified_user) { create(:verified_user, password: 'password123') }
+    let(:user) { create(:user, password: "Password123") }
+    let(:verified_user) { create(:verified_user, password: "Password123") }
     let(:account) { create(:account) }
     let!(:membership) { create(:membership, user: verified_user, account: account) }
 
@@ -123,7 +128,7 @@ RSpec.describe Api::V1::AuthController, type: :controller do
       it 'returns an access token and refresh token' do
         post :login, params: {
           email: verified_user.email,
-          password: 'password123',
+          password: "Password123",
           account_id: account.id,
           device_name: 'Test Device'
         }, as: :json
@@ -135,7 +140,7 @@ RSpec.describe Api::V1::AuthController, type: :controller do
       it 'tracks sign in information' do
         post :login, params: {
           email: verified_user.email,
-          password: 'password123',
+          password: "Password123",
           account_id: account.id
         }, as: :json
         verified_user.reload
@@ -148,7 +153,7 @@ RSpec.describe Api::V1::AuthController, type: :controller do
         expect {
           post :login, params: {
             email: verified_user.email,
-            password: 'password123',
+            password: "Password123",
             account_id: account.id
           }, as: :json
         }.to change(RefreshToken, :count).by(1)
@@ -159,12 +164,12 @@ RSpec.describe Api::V1::AuthController, type: :controller do
       it 'returns unauthorized status' do
         post :login, params: {
           email: user.email,
-          password: 'password123',
+          password: "Password123",
           account_id: account.id
         }, as: :json
 
         expect(response).to have_http_status(:unauthorized)
-        expect(json_response['errors']).to include(/verify your email/i)
+        expect(json_response['message']).to include('verify your email')
       end
     end
 
@@ -177,13 +182,13 @@ RSpec.describe Api::V1::AuthController, type: :controller do
         }, as: :json
 
         expect(response).to have_http_status(:unauthorized)
-        expect(json_response['errors']).to include('Invalid email or password')
+        expect(json_response['message']).to include('Invalid email or password')
       end
 
       it 'returns unauthorized status with non-existent email' do
         post :login, params: {
           email: 'nonexistent@example.com',
-          password: 'password123',
+          password: "Password123",
           account_id: account.id
         }, as: :json
 
@@ -297,7 +302,7 @@ RSpec.describe Api::V1::AuthController, type: :controller do
       it 'returns an error message' do
         post :verify_email, params: { token: 'invalid-token' }, as: :json
 
-        expect(json_response['errors']).to include('Invalid verification token')
+        expect(json_response['message']).to include('Invalid verification token')
       end
     end
   end
@@ -332,19 +337,19 @@ RSpec.describe Api::V1::AuthController, type: :controller do
       it 'resets the user password' do
         post :reset_password, params: {
           token: user.reset_password_token,
-          password: 'new_password123'
+          password: "NewPassword123"
         }, as: :json
 
         user.reload
         expect(user.reset_password_token).to be_nil
         expect(user.reset_password_sent_at).to be_nil
-        expect(user.authenticate('new_password123')).to eq(user)
+        expect(user.authenticate("NewPassword123")).to eq(user)
       end
 
       it 'returns a success message' do
         post :reset_password, params: {
           token: user.reset_password_token,
-          password: 'new_password123'
+          password: "NewPassword123"
         }, as: :json
 
         expect(response).to have_http_status(:ok)
@@ -358,7 +363,7 @@ RSpec.describe Api::V1::AuthController, type: :controller do
       it 'returns unprocessable entity status' do
         post :reset_password, params: {
           token: user.reset_password_token,
-          password: 'new_password123'
+          password: "NewPassword123"
         }, as: :json
 
         expect(response).to have_http_status(:unprocessable_entity)
@@ -369,7 +374,7 @@ RSpec.describe Api::V1::AuthController, type: :controller do
       it 'returns unprocessable entity status' do
         post :reset_password, params: {
           token: 'invalid-token',
-          password: 'new_password123'
+          password: "NewPassword123"
         }, as: :json
 
         expect(response).to have_http_status(:unprocessable_entity)
@@ -384,11 +389,11 @@ RSpec.describe Api::V1::AuthController, type: :controller do
       it 'returns validation errors' do
         post :reset_password, params: {
           token: user_with_token.reset_password_token,
-          password: 'short'
+          password: "short"
         }, as: :json
 
         expect(response).to have_http_status(:unprocessable_entity)
-        expect(json_response['errors']).to include('Password is too short (minimum is 8 characters)')
+        expect(json_response['details']['password']).to include('is too short (minimum is 8 characters)')
       end
     end
   end

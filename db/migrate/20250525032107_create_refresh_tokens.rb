@@ -6,7 +6,7 @@ class CreateRefreshTokens < ActiveRecord::Migration[8.0]
       t.datetime :expires_at, null: false
       t.string :device_name
       t.string :ip_address
-      
+
       t.timestamps
     end
 

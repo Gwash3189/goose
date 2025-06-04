@@ -5,7 +5,7 @@ class ReplaceFirstAndLastNameWithFullNameOnUsers < ActiveRecord::Migration[8.0]
       dir.up do
         User.reset_column_information if defined?(User)
         User.find_each do |user|
-          user.update_columns(full_name: [user.try(:first_name), user.try(:last_name)].compact.join(' ').strip)
+          user.update_columns(full_name: [ user.try(:first_name), user.try(:last_name) ].compact.join(' ').strip)
         end
       end
     end

@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe Api::V1::UsersController, type: :controller do
-  let(:user) { create(:user, password: 'password123', full_name: 'Test User') }
+  let(:user) { create(:user, password: "Password123", full_name: "Test User") }
   let(:account) { create(:account) }
   let!(:membership) { create(:membership, user: user, account: account, role: :owner) }
 
@@ -33,7 +33,7 @@ RSpec.describe Api::V1::UsersController, type: :controller do
       it 'returns errors and does not update' do
         patch :update, params: { user: { full_name: '' } }, as: :json
         expect(response).to have_http_status(:unprocessable_entity)
-        expect(JSON.parse(response.body)['errors']).to be_present
+        expect(JSON.parse(response.body)['details']).to be_present
       end
     end
   end
@@ -41,10 +41,10 @@ RSpec.describe Api::V1::UsersController, type: :controller do
   describe 'PATCH #update_password' do
     context 'with correct current password and valid new password' do
       it 'updates the password' do
-        patch :update_password, params: { user: { current_password: 'password123', new_password: 'newpassword456' } }, as: :json
+        patch :update_password, params: { user: { current_password: "Password123", new_password: "NewPassword456" } }, as: :json
         expect(response).to have_http_status(:ok)
         expect(JSON.parse(response.body)['message']).to include('Password updated successfully')
-        expect(user.reload.authenticate('newpassword456')).to eq(user)
+        expect(user.reload.authenticate("NewPassword456")).to eq(user)
       end
     end
 
@@ -52,15 +52,15 @@ RSpec.describe Api::V1::UsersController, type: :controller do
       it 'returns an error' do
         patch :update_password, params: { user: { current_password: 'wrong', new_password: 'newpassword456' } }, as: :json
         expect(response).to have_http_status(:unprocessable_entity)
-        expect(JSON.parse(response.body)['errors']).to include('Current password is incorrect')
+        expect(JSON.parse(response.body)['message']).to include('Current password is incorrect')
       end
     end
 
     context 'with invalid new password' do
       it 'returns validation errors' do
-        patch :update_password, params: { user: { current_password: 'password123', new_password: 'short' } }, as: :json
+        patch :update_password, params: { user: { current_password: "Password123", new_password: "short" } }, as: :json
         expect(response).to have_http_status(:unprocessable_entity)
-        expect(JSON.parse(response.body)['errors']).to be_present
+        expect(JSON.parse(response.body)['details']).to be_present
       end
     end
   end
@@ -96,7 +96,7 @@ RSpec.describe Api::V1::UsersController, type: :controller do
       it 'returns forbidden' do
         get :index, params: { account_id: account.id }, as: :json
         expect(response).to have_http_status(:forbidden)
-        expect(JSON.parse(response.body)['errors']).to include('Forbidden')
+        expect(JSON.parse(response.body)['message']).to include('Forbidden')
       end
     end
 
@@ -104,7 +104,7 @@ RSpec.describe Api::V1::UsersController, type: :controller do
       it 'returns not found' do
         get :index, params: { account_id: 999999 }, as: :json
         expect(response).to have_http_status(:not_found)
-        expect(JSON.parse(response.body)['errors']).to include('Account not found')
+        expect(JSON.parse(response.body)['message']).to include('Account not found')
       end
     end
   end

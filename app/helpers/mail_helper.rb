@@ -6,10 +6,10 @@ module MailHelper
   end
 
   def format_date(date)
-    date.strftime('%B %d, %Y')
+    date.strftime("%B %d, %Y")
   end
 
   def format_datetime(datetime)
-    datetime.strftime('%B %d, %Y at %I:%M %p %Z')
+    datetime.strftime("%B %d, %Y at %I:%M %p %Z")
   end
 end

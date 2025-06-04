@@ -14,7 +14,7 @@ RSpec.describe UserMailer, type: :mailer do
     end
 
     it 'sends to the correct recipient' do
-      expect(mail.to).to eq([user.email])
+      expect(mail.to).to eq([ user.email ])
     end
 
     it 'includes the verification URL' do
@@ -31,7 +31,7 @@ RSpec.describe UserMailer, type: :mailer do
     end
 
     it 'sends to the correct recipient' do
-      expect(mail.to).to eq([user.email])
+      expect(mail.to).to eq([ user.email ])
     end
 
     it 'includes the login URL' do
@@ -48,7 +48,7 @@ RSpec.describe UserMailer, type: :mailer do
     end
 
     it 'sends to the correct recipient' do
-      expect(mail.to).to eq([user.email])
+      expect(mail.to).to eq([ user.email ])
     end
 
     it 'includes the reset password URL' do
@@ -65,7 +65,7 @@ RSpec.describe UserMailer, type: :mailer do
     end
 
     it 'sends to the correct recipient' do
-      expect(mail.to).to eq([user.email])
+      expect(mail.to).to eq([ user.email ])
     end
 
     it 'includes the support email' do
@@ -81,7 +81,7 @@ RSpec.describe UserMailer, type: :mailer do
     end
 
     it 'sends to the correct recipient' do
-      expect(mail.to).to eq([user.email])
+      expect(mail.to).to eq([ user.email ])
     end
 
     it 'includes the inviter name' do
@@ -101,7 +101,7 @@ RSpec.describe UserMailer, type: :mailer do
     end
 
     it 'sends to the correct recipient' do
-      expect(mail.to).to eq([user.email])
+      expect(mail.to).to eq([ user.email ])
     end
 
     it 'includes the device name and IP address' do

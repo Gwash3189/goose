@@ -32,5 +32,5 @@ class Membership < ApplicationRecord
 
   scope :active, -> { where(active: true) }
   scope :owners, -> { where(role: :owner) }
-  scope :admins, -> { where(role: [:owner, :admin]) }
+  scope :admins, -> { where(role: [ :owner, :admin ]) }
 end

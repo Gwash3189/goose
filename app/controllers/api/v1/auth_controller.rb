@@ -2,14 +2,16 @@
 module Api
   module V1
     class AuthController < ApplicationController
-      skip_before_action :authenticate_user!, only: [:register, :login, :verify_email, :forgot_password, :reset_password, :refresh]
+      include RateLimiting
+
+      skip_before_action :authenticate_user!, only: [ :register, :login, :verify_email, :forgot_password, :reset_password, :refresh ]
 
       # POST /api/v1/auth/register
       def register
         ActiveRecord::Base.transaction do
           if params[:account_id].present?
             account = Account.find_by(id: params[:account_id])
-            return render json: { errors: ['Account not found'] }, status: :not_found unless account
+            return render_error("Account not found", :not_found) unless account
           else
             account = Account.create!(name: params[:account_name] || params[:email])
           end
@@ -19,14 +21,14 @@ module Api
             # Add user to account as owner if new account, or member if joining existing
             role = account.memberships.count.zero? ? :owner : :member
             account.memberships.create!(user: user, role: role)
-            UserMailer.verification_email(user).deliver_now
+            UserMailer.verification_email(user).deliver_later
             render json: {
-              message: 'Registration successful. Please check your email to verify your account.',
+              message: "Registration successful. Please check your email to verify your account.",
               user: user_json(user),
               account: { id: account.id, name: account.name }
             }, status: :created
           else
-            render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
+            render_validation_errors(user)
           end
         end
       end
@@ -37,7 +39,7 @@ module Api
 
         if user&.authenticate(params[:password])
           unless user.email_verified?
-            return render json: { errors: ['Please verify your email address'] }, status: :unauthorized
+            return render_unauthorized("Please verify your email address")
           end
 
           user.track_sign_in!(request.remote_ip)
@@ -49,13 +51,21 @@ module Api
             ip_address: request.remote_ip
           )
 
+          # Send new device notification if different IP/device
+          if should_send_new_device_notification?(user, request.remote_ip, params[:device_name])
+            UserMailer.new_device_login_email(user, {
+              device_name: params[:device_name],
+              ip_address: request.remote_ip
+            }).deliver_later
+          end
+
           render json: {
             access_token: access_token,
             refresh_token: refresh_token.token,
             user: user_json(user)
           }
         else
-          render json: { errors: ['Invalid email or password'] }, status: :unauthorized
+          render_unauthorized("Invalid email or password")
         end
       end
 
@@ -64,7 +74,7 @@ module Api
         refresh_token = RefreshToken.find_by(token: params[:refresh_token])
         refresh_token&.destroy
 
-        render json: { message: 'Logged out successfully' }
+        render json: { message: "Logged out successfully" }
       end
 
       # POST /api/v1/auth/refresh
@@ -80,7 +90,7 @@ module Api
             user: user_json(user)
           }
         else
-          render json: { errors: ['Invalid or expired refresh token'] }, status: :unauthorized
+          render_unauthorized("Invalid or expired refresh token")
         end
       end
 
@@ -90,9 +100,9 @@ module Api
 
         if user
           user.verify_email!
-          render json: { message: 'Email verified successfully' }
+          render json: { message: "Email verified successfully" }
         else
-          render json: { errors: ['Invalid verification token'] }, status: :unprocessable_entity
+          render_error("Invalid verification token", :unprocessable_entity)
         end
       end
 
@@ -107,22 +117,23 @@ module Api
         end
 
         # Always return success to prevent email enumeration
-        render json: { message: 'If your email exists in our system, you will receive a password reset link' }
+        render json: { message: "If your email exists in our system, you will receive a password reset link" }
       end
 
       # POST /api/v1/auth/reset-password
       def reset_password
         user = User.find_by(reset_password_token: params[:token])
 
-        if user && user.reset_password_sent_at > 2.hours.ago
-          begin
-            user.reset_password!(params[:password])
-            render json: { message: 'Password reset successfully' }
-          rescue ActiveRecord::RecordInvalid
-            render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
-          end
+        unless user&.reset_password_token_valid?
+          return render_error("Invalid or expired reset token", :unprocessable_entity)
+        end
+
+        if user.update(password: params[:password])
+          user.update!(reset_password_token: nil, reset_password_sent_at: nil)
+          UserMailer.password_changed_email(user).deliver_later
+          render json: { message: "Password reset successfully" }
         else
-          render json: { errors: ['Invalid or expired reset token'] }, status: :unprocessable_entity
+          render_validation_errors(user)
         end
       end
 
@@ -140,6 +151,16 @@ module Api
           email_verified: user.email_verified,
           created_at: user.created_at
         }
+      end
+
+      def should_send_new_device_notification?(user, ip_address, device_name)
+        # Send notification if this is a new IP address or device
+        recent_login = user.refresh_tokens
+                          .where("created_at > ?", 24.hours.ago)
+                          .where(ip_address: ip_address, device_name: device_name)
+                          .exists?
+
+        !recent_login
       end
     end
   end

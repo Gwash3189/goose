@@ -32,10 +32,21 @@ class User < ApplicationRecord
   has_many :accounts, through: :memberships
   has_many :refresh_tokens, dependent: :destroy
 
-  validates :email, presence: true, uniqueness: { case_sensitive: false },
-            format: { with: URI::MailTo::EMAIL_REGEXP }
-  validates :password, presence: true, length: { minimum: 8 }, if: :password_required?
-  validates :full_name, presence: true
+  validates :email, presence: true,
+            uniqueness: { case_sensitive: false },
+            format: {
+              with: URI::MailTo::EMAIL_REGEXP,
+              message: "must be a valid email address"
+            },
+            length: { maximum: 255 }
+  validates :password, presence: true,
+            length: { minimum: 8, maximum: 128 },
+            format: {
+              with: /\A(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+              message: "must contain at least one lowercase letter, one uppercase letter, and one number"
+            },
+            if: :password_required?
+  validates :full_name, presence: true, length: { minimum: 1, maximum: 100 }
 
   before_save :downcase_email
   before_create :generate_verification_token
@@ -53,9 +64,13 @@ class User < ApplicationRecord
   end
 
   def generate_reset_password_token!
-    self.reset_password_token = SecureRandom.urlsafe_base64
+    self.reset_password_token = SecureRandom.urlsafe_base64(32)
     self.reset_password_sent_at = Time.current
     save!
+  end
+
+  def reset_password_token_valid?
+    reset_password_sent_at && reset_password_sent_at > 2.hours.ago
   end
 
   def verify_email!
@@ -66,12 +81,6 @@ class User < ApplicationRecord
     )
   end
 
-  def reset_password!(new_password)
-    self.password = new_password
-    self.reset_password_token = nil
-    self.reset_password_sent_at = nil
-    save!
-  end
 
   def track_sign_in!(ip_address)
     update!(
