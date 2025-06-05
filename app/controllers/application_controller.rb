@@ -5,6 +5,28 @@ class ApplicationController < ActionController::API
 
   private
 
+  def user_json(user, options = {})
+    json = {
+      id: user.id,
+      email: user.email,
+      full_name: user.full_name,
+      email_verified: user.email_verified,
+      created_at: user.created_at
+    }
+
+    if options[:include_accounts]
+      json[:accounts] = user.accounts.active.map do |account|
+        {
+          id: account.id,
+          name: account.name,
+          role: user.memberships.find_by(account: account)&.role
+        }
+      end
+    end
+
+    json
+  end
+
   def authenticate_user!
     token = extract_token_from_header
     return render_unauthorized("Missing authorization token") unless token

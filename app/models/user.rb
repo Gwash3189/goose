@@ -38,15 +38,19 @@ class User < ApplicationRecord
               with: URI::MailTo::EMAIL_REGEXP,
               message: "must be a valid email address"
             },
-            length: { maximum: 255 }
+            length: { maximum: AppConfig::USER_EMAIL_MAX_LENGTH }
   validates :password, presence: true,
-            length: { minimum: 8, maximum: 128 },
+            length: { minimum: AppConfig::PASSWORD_MIN_LENGTH, maximum: AppConfig::PASSWORD_MAX_LENGTH },
             format: {
               with: /\A(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*\z/,
               message: "must contain at least one lowercase letter, one uppercase letter, and one number"
             },
             if: :password_required?
-  validates :full_name, presence: true, length: { minimum: 1, maximum: 100 }
+  validates :full_name, presence: true, length: { minimum: AppConfig::USER_FULL_NAME_MIN_LENGTH, maximum: AppConfig::USER_FULL_NAME_MAX_LENGTH },
+                        format: { with: AppConfig::FULL_NAME_REGEX, message: "can only contain letters, spaces, hyphens, apostrophes, and periods" }
+  validates :last_sign_in_ip, format: { with: AppConfig::IP_ADDRESS_REGEX, message: "must be a valid IP address" }, allow_blank: true
+  validates :verification_token, length: { is: AppConfig::VERIFICATION_TOKEN_LENGTH }, allow_blank: true
+  validates :reset_password_token, length: { is: AppConfig::RESET_PASSWORD_TOKEN_LENGTH }, allow_blank: true
 
   before_save :downcase_email
   before_create :generate_verification_token
@@ -71,7 +75,7 @@ class User < ApplicationRecord
   end
 
   def reset_password_token_valid?
-    reset_password_sent_at && reset_password_sent_at > 2.hours.ago
+    reset_password_sent_at && reset_password_sent_at > AppConfig::PASSWORD_RESET_VALIDITY.ago
   end
 
   def verify_email!

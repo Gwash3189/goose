@@ -31,6 +31,4 @@ class Membership < ApplicationRecord
   validates :user_id, uniqueness: { scope: :account_id }
 
   scope :active, -> { where(active: true) }
-  scope :owners, -> { where(role: :owner) }
-  scope :admins, -> { where(role: [ :owner, :admin ]) }
 end

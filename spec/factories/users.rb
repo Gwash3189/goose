@@ -39,7 +39,7 @@ FactoryBot.define do
     end
 
     trait :with_reset_token do
-      reset_password_token { SecureRandom.urlsafe_base64 }
+      reset_password_token { SecureRandom.urlsafe_base64(32) }
       reset_password_sent_at { Time.current }
     end
 

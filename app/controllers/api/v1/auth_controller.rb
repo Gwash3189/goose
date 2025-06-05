@@ -22,7 +22,7 @@ module Api
             account = Account.find_by(id: params[:account_id])
             return render_error("Account not found", :not_found) unless account
           else
-            account = Account.create!(name: params[:account_name] || params[:email])
+            account = Account.create!(name: params[:account_name] || params[:email].split("@")[0])
           end
 
           user = User.new(user_params)
@@ -168,20 +168,11 @@ module Api
         params.permit(:email, :password, :full_name)
       end
 
-      def user_json(user)
-        {
-          id: user.id,
-          email: user.email,
-          full_name: user.full_name,
-          email_verified: user.email_verified,
-          created_at: user.created_at
-        }
-      end
 
       def should_send_new_device_notification?(user, ip_address, device_name)
         # Send notification if this is a new IP address or device
         recent_login = user.refresh_tokens
-                          .where("created_at > ?", 24.hours.ago)
+                          .where("created_at > ?", AppConfig::NEW_DEVICE_CHECK_WINDOW.ago)
                           .where(ip_address: ip_address, device_name: device_name)
                           .exists?
 

@@ -14,18 +14,15 @@ module RateLimiting
 
     case action_name
     when "login"
-      limit = 5
-      window = 15.minutes
+      limit = AppConfig::RATE_LIMIT_LOGIN_ATTEMPTS
+      window = AppConfig::RATE_LIMIT_LOGIN_WINDOW
     when "register", "forgot_password"
-      limit = 3
-      window = 1.hour
+      limit = AppConfig::RATE_LIMIT_REGISTRATION_ATTEMPTS
+      window = AppConfig::RATE_LIMIT_REGISTRATION_WINDOW
     end
 
     if attempts >= limit
-      render json: {
-        error: "Too Many Requests",
-        message: "Rate limit exceeded. Try again in #{window.inspect}."
-      }, status: :too_many_requests
+      render_error("Rate limit exceeded. Try again in #{window.inspect}.", :too_many_requests)
       return
     end
 

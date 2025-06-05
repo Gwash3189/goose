@@ -12,15 +12,14 @@ class Account < ApplicationRecord
   has_many :memberships, dependent: :destroy
   has_many :users, through: :memberships
 
-  validates :name, presence: true
+  validates :name, presence: true,
+                   length: { minimum: AppConfig::ACCOUNT_NAME_MIN_LENGTH, maximum: AppConfig::ACCOUNT_NAME_MAX_LENGTH },
+                   format: { with: AppConfig::ACCOUNT_NAME_REGEX, message: "can only contain letters, numbers, spaces, hyphens, underscores, and periods" },
+                   uniqueness: { case_sensitive: false }
 
   scope :active, -> { where(active: true) }
 
   def owner
     memberships.find_by(role: :owner)&.user
-  end
-
-  def add_user(user, role: :member)
-    memberships.create!(user: user, role: role)
   end
 end

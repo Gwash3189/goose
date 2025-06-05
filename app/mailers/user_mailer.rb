@@ -1,7 +1,4 @@
 class UserMailer < ApplicationMailer
-  # Include any helpers you need
-  helper :mail
-
   # Email verification after registration
   def verification_email(user)
     @user = user
@@ -42,7 +39,7 @@ class UserMailer < ApplicationMailer
   # Password changed notification
   def password_changed_email(user)
     @user = user
-    @support_email = ENV.fetch("SUPPORT_EMAIL", "support@yourapp.com")
+    @support_email = AppConfig.support_email
     @changed_at = Time.current.strftime("%B %d, %Y at %I:%M %p %Z")
 
     mail(
@@ -71,7 +68,7 @@ class UserMailer < ApplicationMailer
     @ip_address = device_info[:ip_address]
     @location = device_info[:location] # You'd need to implement IP geolocation
     @login_time = Time.current.strftime("%B %d, %Y at %I:%M %p %Z")
-    @support_email = ENV.fetch("SUPPORT_EMAIL", "support@yourapp.com")
+    @support_email = AppConfig.support_email
 
     mail(
       to: user.email,
@@ -82,18 +79,18 @@ class UserMailer < ApplicationMailer
   private
 
   def app_name
-    ENV.fetch("APP_NAME", "YourApp")
+    AppConfig.app_name
   end
 
   def verify_email_url(token:)
-    "#{ENV.fetch('FRONTEND_URL', 'http://localhost:3001')}/verify-email?token=#{token}"
+    "#{AppConfig.frontend_url}/verify-email?token=#{token}"
   end
 
   def reset_password_url(token:)
-    "#{ENV.fetch('FRONTEND_URL', 'http://localhost:3001')}/reset-password?token=#{token}"
+    "#{AppConfig.frontend_url}/reset-password?token=#{token}"
   end
 
   def login_url
-    "#{ENV.fetch('FRONTEND_URL', 'http://localhost:3001')}/login"
+    "#{AppConfig.frontend_url}/login"
   end
 end

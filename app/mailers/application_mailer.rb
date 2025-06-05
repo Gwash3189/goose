@@ -1,8 +1,6 @@
 class ApplicationMailer < ActionMailer::Base
-  default from: ENV.fetch("DEFAULT_FROM_EMAIL", "noreply@yourapp.com")
+  default from: AppConfig.default_from_email
   layout "mailer"
-
-  helper :application
 
   # Include host helpers for URL generation
   include Rails.application.routes.url_helpers
@@ -10,6 +8,6 @@ class ApplicationMailer < ActionMailer::Base
   protected
 
   def default_url_options
-    { host: ENV.fetch("APP_HOST", "localhost:3000") }
+    { host: AppConfig.app_host }
   end
 end
