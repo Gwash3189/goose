@@ -13,6 +13,17 @@ class ApplicationController < ActionController::API
       decoded = jwt_decode(token)
       @current_user = User.find(decoded[:user_id])
       @current_account_id = decoded[:account_id]
+
+      # Check if password has been changed since token was issued
+      token_pwd_changed_at = decoded[:pwd_changed_at]
+      if token_pwd_changed_at && @current_user.password_changed_at
+        user_pwd_changed_at = @current_user.password_changed_at.to_i
+
+        if user_pwd_changed_at > token_pwd_changed_at
+          render_unauthorized("Token invalidated due to password change")
+        end
+      end
+
     rescue ActiveRecord::RecordNotFound
       render_unauthorized("User not found")
     rescue JWT::ExpiredSignature

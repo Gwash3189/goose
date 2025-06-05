@@ -8,6 +8,13 @@ module JsonWebToken
   def jwt_encode(payload, exp = 24.hours.from_now)
     payload[:exp] = exp.to_i
     payload[:iat] = Time.current.to_i
+
+    # Include password change timestamp for security
+    if payload[:user_id].present?
+      user = User.find_by(id: payload[:user_id])
+      payload[:pwd_changed_at] = user&.password_changed_at&.to_i
+    end
+
     JWT.encode(payload, SECRET_KEY, "HS256")
   end
 

@@ -60,9 +60,9 @@ RSpec.describe Api::V1::AuthController, type: :controller do
         expect(response).to have_http_status(:unprocessable_entity)
       end
 
-      it 'returns error messages' do
+      it 'returns generic error message' do
         post :register, params: invalid_params, as: :json
-        expect(json_response['details']['email']).to include("can't be blank")
+        expect(json_response['message']).to include('Unable to create account')
       end
     end
 
@@ -110,10 +110,10 @@ RSpec.describe Api::V1::AuthController, type: :controller do
     end
 
     context 'when user params are invalid' do
-      it 'returns validation errors' do
+      it 'returns generic error message' do
         post :register, params: { email: '', password: '', account_name: 'Test Account' }, as: :json
         expect(response).to have_http_status(:unprocessable_entity)
-        expect(json_response['details']).to be_present
+        expect(json_response['message']).to include('Unable to create account')
       end
     end
   end

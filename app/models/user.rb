@@ -42,7 +42,7 @@ class User < ApplicationRecord
   validates :password, presence: true,
             length: { minimum: 8, maximum: 128 },
             format: {
-              with: /\A(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+              with: /\A(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*\z/,
               message: "must contain at least one lowercase letter, one uppercase letter, and one number"
             },
             if: :password_required?
@@ -50,6 +50,7 @@ class User < ApplicationRecord
 
   before_save :downcase_email
   before_create :generate_verification_token
+  before_save :track_password_change
 
   scope :verified, -> { where(email_verified: true) }
 
@@ -99,6 +100,15 @@ class User < ApplicationRecord
   def generate_verification_token
     self.verification_token = SecureRandom.urlsafe_base64
     self.verification_sent_at = Time.current
+  end
+
+  def track_password_change
+    if password_digest_changed? && !new_record?
+      # Ensure password change timestamp is later than any existing timestamp
+      self.password_changed_at = Time.current + 1.second
+    elsif new_record?
+      self.password_changed_at = Time.current
+    end
   end
 
   def password_required?

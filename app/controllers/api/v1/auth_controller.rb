@@ -4,10 +4,19 @@ module Api
     class AuthController < ApplicationController
       include RateLimiting
 
-      skip_before_action :authenticate_user!, only: [ :register, :login, :verify_email, :forgot_password, :reset_password, :refresh ]
+      skip_before_action :authenticate_user!, only: [ :register, :login, :logout, :verify_email, :forgot_password, :reset_password, :refresh ]
 
       # POST /api/v1/auth/register
       def register
+        # Check if email already exists FIRST to prevent enumeration and account pollution
+        if User.exists?(email: params[:email]&.downcase)
+          # Return success message to prevent email enumeration
+          render json: {
+            message: "Registration successful. Please check your email to verify your account."
+          }, status: :created
+          return
+        end
+
         ActiveRecord::Base.transaction do
           if params[:account_id].present?
             account = Account.find_by(id: params[:account_id])
@@ -28,7 +37,11 @@ module Api
               account: { id: account.id, name: account.name }
             }, status: :created
           else
-            render_validation_errors(user)
+            # Don't leak specific validation errors that could reveal system information
+            render json: {
+              error: "Registration Failed",
+              message: "Unable to create account. Please check your information and try again."
+            }, status: :unprocessable_entity
           end
         end
       end
@@ -37,12 +50,24 @@ module Api
       def login
         user = User.find_by(email: params[:email]&.downcase)
 
-        if user&.authenticate(params[:password])
+        # Always perform password hashing to prevent timing attacks
+        if user
+          password_valid = user.authenticate(params[:password])
+        else
+          # Perform dummy password check to prevent timing attacks
+          BCrypt::Password.create(params[:password])
+          password_valid = false
+        end
+
+        if user && password_valid
           unless user.email_verified?
             return render_unauthorized("Please verify your email address")
           end
 
           user.track_sign_in!(request.remote_ip)
+
+          # Check for new device notification before creating refresh token
+          should_notify_new_device = should_send_new_device_notification?(user, request.remote_ip, params[:device_name])
 
           # Generate tokens
           access_token = jwt_encode(user_id: user.id, account_id: params[:account_id])
@@ -52,7 +77,7 @@ module Api
           )
 
           # Send new device notification if different IP/device
-          if should_send_new_device_notification?(user, request.remote_ip, params[:device_name])
+          if should_notify_new_device
             UserMailer.new_device_login_email(user, {
               device_name: params[:device_name],
               ip_address: request.remote_ip
